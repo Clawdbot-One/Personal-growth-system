@@ -1,8 +1,7 @@
 <template>
-  <AppLayout>
-    <div class="admin-system">
-      <div class="page-header">
-        <h2>系统配置</h2>
+  <div class="admin-system">
+    <div class="page-header">
+      <h2>系统配置</h2>
       </div>
 
       <!-- AI 参数配置 -->
@@ -146,13 +145,12 @@
         </el-form>
       </section>
     </div>
-  </AppLayout>
+  </div>
 </template>
 
 <script setup>
 import { reactive } from 'vue'
 import { ElMessage } from 'element-plus'
-import AppLayout from '@/components/layout/AppLayout.vue'
 
 const aiConfig = reactive({
   temperature: 0.7,

@@ -10,9 +10,9 @@
         <p class="logo-slogan">发现天赋优势，精准高效成长</p>
       </div>
       <nav class="sidebar-nav">
-        <router-link to="/" class="nav-item" active-class="active">
+        <router-link to="/home" class="nav-item" active-class="active">
           <el-icon><HomeFilled /></el-icon>
-          <span>首页</span>
+          <span>用户中心</span>
         </router-link>
         <router-link to="/assessment" class="nav-item" active-class="active">
           <el-icon><EditPen /></el-icon>
@@ -95,7 +95,7 @@
 
     <!-- 移动端底部导航 -->
     <nav class="mobile-nav hide-desktop" v-if="isMobile">
-      <router-link to="/" class="tab-item" active-class="active">
+      <router-link to="/home" class="tab-item" active-class="active">
         <el-icon><HomeFilled /></el-icon>
         <span>首页</span>
       </router-link>

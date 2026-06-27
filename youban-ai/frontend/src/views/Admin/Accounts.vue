@@ -1,54 +1,14 @@
 <template>
-  <div class="app-layout">
-    <aside class="sidebar">
-      <div class="logo">
-        <span class="logo-icon">✨</span>
-        <span class="logo-text">优伴AI</span>
-        <span class="logo-badge">管理</span>
-      </div>
-      <nav class="nav-menu">
-        <router-link to="/admin" class="nav-item" active-class="active">
-          <el-icon><DataAnalysis /></el-icon>
-          <span>仪表盘</span>
-        </router-link>
-        <router-link to="/admin/users" class="nav-item" active-class="active">
-          <el-icon><User /></el-icon>
-          <span>用户管理</span>
-        </router-link>
-        <router-link to="/admin/accounts" class="nav-item" active-class="active">
-          <el-icon><Avatar /></el-icon>
-          <span>管理员账号</span>
-        </router-link>
-        <router-link to="/admin/content" class="nav-item" active-class="active">
-          <el-icon><Document /></el-icon>
-          <span>内容管理</span>
-        </router-link>
-        <router-link to="/admin/system" class="nav-item" active-class="active">
-          <el-icon><Setting /></el-icon>
-          <span>系统配置</span>
-        </router-link>
-      </nav>
-      <div class="sidebar-footer">
-        <router-link to="/" class="nav-item">
-          <el-icon><Back /></el-icon>
-          <span>返回前台</span>
-        </router-link>
-      </div>
-    </aside>
+  <div class="admin-accounts">
+    <div class="page-header">
+      <h2>管理员账号管理</h2>
+      <el-button type="primary" @click="showCreateDialog">
+        <el-icon><Plus /></el-icon> 新增管理员
+      </el-button>
+    </div>
 
-    <div class="main-content">
-      <header class="top-bar">
-        <h2>管理员账号管理</h2>
-        <div class="top-bar-right">
-          <el-button type="primary" @click="showCreateDialog">
-            <el-icon><Plus /></el-icon> 新增管理员
-          </el-button>
-        </div>
-      </header>
-
-      <div class="content-area">
-        <section class="card">
-          <el-table :data="admins" style="width: 100%" stripe v-loading="loading">
+    <section class="card">
+      <el-table :data="admins" style="width: 100%" stripe v-loading="loading">
             <el-table-column prop="username" label="用户名" width="130" />
             <el-table-column prop="nickname" label="昵称" width="130" />
             <el-table-column prop="phone" label="手机号" width="140" />
@@ -78,8 +38,6 @@
             </el-table-column>
           </el-table>
         </section>
-      </div>
-    </div>
 
     <!-- 新增管理员弹窗 -->
     <el-dialog v-model="createVisible" title="新增管理员" width="480px">
@@ -225,31 +183,20 @@ async function handleResetPwd() {
 </script>
 
 <style scoped>
-.app-layout { display: flex; min-height: 100vh; background: #f5f7fa; }
-.sidebar {
-  width: 220px; background: #fff; border-right: 1px solid #e4e7ed;
-  display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
 }
-.logo { display: flex; align-items: center; gap: 6px; padding: 20px 16px; border-bottom: 1px solid #f0f0f0; }
-.logo-icon { font-size: 22px; }
-.logo-text { font-size: 18px; font-weight: 700; color: #303133; }
-.logo-badge { font-size: 11px; background: #409eff; color: #fff; padding: 1px 6px; border-radius: 4px; margin-left: 4px; }
-.nav-menu { flex: 1; padding: 12px 8px; }
-.nav-item {
-  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
-  border-radius: 8px; color: #606266; text-decoration: none; font-size: 14px;
-  transition: all 0.2s; margin-bottom: 2px;
+
+.page-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0;
 }
-.nav-item:hover { background: #f0f2f5; color: #303133; }
-.nav-item.active { background: #ecf5ff; color: #409eff; font-weight: 600; }
-.sidebar-footer { padding: 12px 8px; border-top: 1px solid #f0f0f0; }
-.main-content { flex: 1; margin-left: 220px; display: flex; flex-direction: column; }
-.top-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 24px; background: #fff; border-bottom: 1px solid #e4e7ed;
-}
-.top-bar h2 { font-size: 18px; font-weight: 600; color: #303133; margin: 0; }
-.content-area { padding: 24px; flex: 1; }
+
 .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
 .reset-hint { margin-bottom: 16px; color: #606266; font-size: 14px; }
 </style>

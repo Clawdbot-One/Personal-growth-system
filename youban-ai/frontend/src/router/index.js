@@ -8,12 +8,19 @@ const routes = [
     component: () => import('@/views/Auth.vue'),
     meta: { title: '登录 - 优伴AI', noLayout: true, guest: true },
   },
-  // 首页
+  // 首页（未登录时展示落地页）
   {
     path: '/',
     name: 'Home',
     component: () => import('@/views/Home.vue'),
     meta: { title: '优伴AI - 发现天赋优势', noLayout: true },
+  },
+  // 用户中心主页（登录后默认首页）
+  {
+    path: '/home',
+    name: 'UserCenter',
+    component: () => import('@/views/UserCenter.vue'),
+    meta: { title: '用户中心' },
   },
   // 测评
   {
@@ -107,33 +114,40 @@ const routes = [
   // 管理后台
   {
     path: '/admin',
-    name: 'AdminDashboard',
-    component: () => import('@/views/Admin/Dashboard.vue'),
-    meta: { title: '管理后台', admin: true },
-  },
-  {
-    path: '/admin/users',
-    name: 'AdminUsers',
-    component: () => import('@/views/Admin/Users.vue'),
-    meta: { title: '用户管理', admin: true },
-  },
-  {
-    path: '/admin/accounts',
-    name: 'AdminAccounts',
-    component: () => import('@/views/Admin/Accounts.vue'),
-    meta: { title: '管理员账号管理', admin: true },
-  },
-  {
-    path: '/admin/content',
-    name: 'AdminContent',
-    component: () => import('@/views/Admin/Content.vue'),
-    meta: { title: '内容管理', admin: true },
-  },
-  {
-    path: '/admin/system',
-    name: 'AdminSystem',
-    component: () => import('@/views/Admin/System.vue'),
-    meta: { title: '系统配置', admin: true },
+    component: () => import('@/components/layout/AdminLayout.vue'),
+    meta: { admin: true },
+    children: [
+      {
+        path: '',
+        name: 'AdminDashboard',
+        component: () => import('@/views/Admin/Dashboard.vue'),
+        meta: { title: '管理后台' },
+      },
+      {
+        path: 'users',
+        name: 'AdminUsers',
+        component: () => import('@/views/Admin/Users.vue'),
+        meta: { title: '用户管理' },
+      },
+      {
+        path: 'accounts',
+        name: 'AdminAccounts',
+        component: () => import('@/views/Admin/Accounts.vue'),
+        meta: { title: '管理员账号管理' },
+      },
+      {
+        path: 'content',
+        name: 'AdminContent',
+        component: () => import('@/views/Admin/Content.vue'),
+        meta: { title: '内容管理' },
+      },
+      {
+        path: 'system',
+        name: 'AdminSystem',
+        component: () => import('@/views/Admin/System.vue'),
+        meta: { title: '系统配置' },
+      },
+    ],
   },
 ]
 
@@ -151,10 +165,9 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('youban_token')
   const isAuthPage = to.meta.guest
 
-  // Pages that require auth
+  // Check if any parent route has admin meta (for nested routes)
+  const requiresAdmin = to.matched.some(r => r.meta.admin)
   const requiresAuth = !to.meta.noLayout && !to.meta.guest
-  // Pages that require admin
-  const requiresAdmin = to.meta.admin
 
   if (requiresAuth && !token) {
     return next('/auth')
@@ -164,8 +177,14 @@ router.beforeEach((to, from, next) => {
     return next('/auth')
   }
 
-  if (isAuthPage && token) {
-    return next('/')
+  // Logged-in users: redirect guest pages to user center
+  if (token && isAuthPage) {
+    return next('/home')
+  }
+
+  // Logged-in users visiting landing page: redirect to user center
+  if (token && to.path === '/') {
+    return next('/home')
   }
 
   next()

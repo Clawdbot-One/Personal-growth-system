@@ -119,7 +119,7 @@ async function handleLogin() {
       localStorage.setItem('youban_token', res.data.token)
       localStorage.setItem('youban_user', JSON.stringify(res.data.user))
       ElMessage.success(res.message || '登录成功')
-      router.push('/')
+      router.push('/home')
     }
   } catch (e) {
     // Error handled by interceptor
@@ -145,7 +145,7 @@ async function handleRegister() {
       localStorage.setItem('youban_token', res.data.token)
       localStorage.setItem('youban_user', JSON.stringify(res.data.user))
       ElMessage.success(res.message || '注册成功')
-      router.push('/')
+      router.push('/home')
     }
   } catch (e) {
     // Error handled by interceptor

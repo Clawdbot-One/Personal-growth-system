@@ -32,9 +32,9 @@
           >
             免费注册
           </el-button>
-          <router-link v-else to="/growth" class="dashboard-link">
+          <router-link v-else to="/home" class="dashboard-link">
             <el-button type="primary" size="large" round>
-              进入我的成长
+              进入用户中心
             </el-button>
           </router-link>
           <el-button
@@ -293,13 +293,16 @@ onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
 })
 
-function handleLogin() {
+async function handleLogin() {
   if (!loginForm.value.phone || !loginForm.value.password) {
     return
   }
-  userStore.login(loginForm.value.phone, loginForm.value.password)
+  const success = await userStore.login(loginForm.value.phone, loginForm.value.password)
   showLoginDialog.value = false
   loginForm.value = { phone: '', password: '' }
+  if (success) {
+    router.push('/home')
+  }
 }
 
 function handleLogout() {

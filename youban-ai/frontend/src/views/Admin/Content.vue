@@ -1,8 +1,7 @@
 <template>
-  <AppLayout>
-    <div class="admin-content">
-      <div class="page-header">
-        <h2>内容管理</h2>
+  <div class="admin-content">
+    <div class="page-header">
+      <h2>内容管理</h2>
       </div>
 
       <el-tabs v-model="activeTab" class="content-tabs">
@@ -253,14 +252,13 @@
         </template>
       </el-dialog>
     </div>
-  </AppLayout>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
-import AppLayout from '@/components/layout/AppLayout.vue'
 
 const activeTab = ref('assessment')
 

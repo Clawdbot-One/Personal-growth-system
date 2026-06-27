@@ -1,8 +1,7 @@
 <template>
-  <AppLayout>
-    <div class="admin-users">
-      <div class="page-header">
-        <h2>用户管理</h2>
+  <div class="admin-users">
+    <div class="page-header">
+      <h2>用户管理</h2>
         <el-button type="primary">
           <el-icon><Plus /></el-icon>
           添加用户
@@ -156,14 +155,13 @@
         </template>
       </el-dialog>
     </div>
-  </AppLayout>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
-import AppLayout from '@/components/layout/AppLayout.vue'
 import request from '@/api/request.js'
 
 const searchQuery = ref('')
