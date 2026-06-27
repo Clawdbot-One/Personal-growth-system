@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import request from '@/api/request.js'
 
 export const useUserStore = defineStore('user', () => {
   const user = ref(null)
@@ -7,59 +8,62 @@ export const useUserStore = defineStore('user', () => {
   const isDark = ref(false)
   const isLoggedIn = computed(() => !!token.value)
 
-  // Mock 用户数据
-  const mockUser = {
-    id: 1,
-    nickname: '探索者小明',
-    phone: '138****8888',
-    avatar: '',
-    memberLevel: 'free',
-    joinDate: '2026-01-15',
-    strengths: {
-      top5: ['战略思维', '学习能力', '责任担当', '沟通表达', '适应力'],
-      scores: { talent: 85, skill: 72, character: 88, value: 79 },
-    },
-    stats: {
-      consecutiveDays: 23,
-      totalHours: 156,
-      completedTasks: 48,
-      achievements: 12,
-    },
-    goals: [],
-  }
-
   function initFromStorage() {
-    const saved = localStorage.getItem('youban_user')
-    if (saved) {
-      const data = JSON.parse(saved)
-      user.value = data.user
-      token.value = data.token
-    } else {
-      // 默认登录状态用于演示
-      user.value = mockUser
-      token.value = 'demo_token_xxx'
-      saveToStorage()
+    const savedToken = localStorage.getItem('youban_token')
+    const savedUser = localStorage.getItem('youban_user')
+    if (savedToken && savedUser) {
+      token.value = savedToken
+      try {
+        user.value = JSON.parse(savedUser)
+      } catch {
+        user.value = null
+      }
     }
   }
 
   function saveToStorage() {
-    localStorage.setItem('youban_user', JSON.stringify({
-      user: user.value,
-      token: token.value,
-    }))
+    localStorage.setItem('youban_token', token.value)
+    localStorage.setItem('youban_user', JSON.stringify(user.value))
   }
 
-  function login(phone, password) {
-    // Mock login
-    user.value = mockUser
-    token.value = 'demo_token_xxx'
-    saveToStorage()
-    return true
+  async function fetchProfile() {
+    try {
+      const res = await request.get('/auth/profile')
+      if (res.code === 0) {
+        user.value = res.data
+        saveToStorage()
+      }
+    } catch {
+      // Ignore error
+    }
+  }
+
+  async function login(username, password) {
+    const res = await request.post('/auth/login', { username, password })
+    if (res.code === 0) {
+      token.value = res.data.token
+      user.value = res.data.user
+      saveToStorage()
+      return true
+    }
+    return false
+  }
+
+  async function register(username, password, nickname) {
+    const res = await request.post('/auth/register', { username, password, nickname })
+    if (res.code === 0) {
+      token.value = res.data.token
+      user.value = res.data.user
+      saveToStorage()
+      return true
+    }
+    return false
   }
 
   function logout() {
     user.value = null
     token.value = ''
+    localStorage.removeItem('youban_token')
     localStorage.removeItem('youban_user')
   }
 
@@ -68,15 +72,20 @@ export const useUserStore = defineStore('user', () => {
     document.documentElement.classList.toggle('dark', isDark.value)
   }
 
-  function updateProfile(data) {
-    if (user.value) {
-      user.value = { ...user.value, ...data }
-      saveToStorage()
+  async function updateProfile(data) {
+    try {
+      const res = await request.put('/auth/profile', data)
+      if (res.code === 0 && user.value) {
+        user.value = { ...user.value, ...data }
+        saveToStorage()
+      }
+    } catch {
+      // Ignore error
     }
   }
 
   return {
     user, token, isDark, isLoggedIn,
-    login, logout, toggleTheme, updateProfile, initFromStorage,
+    login, register, logout, toggleTheme, updateProfile, initFromStorage, fetchProfile,
   }
 })

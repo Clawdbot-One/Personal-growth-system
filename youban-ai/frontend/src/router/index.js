@@ -1,6 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
+  // 登录/注册
+  {
+    path: '/auth',
+    name: 'Auth',
+    component: () => import('@/views/Auth.vue'),
+    meta: { title: '登录 - 优伴AI', noLayout: true, guest: true },
+  },
   // 首页
   {
     path: '/',
@@ -134,6 +141,27 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   document.title = to.meta.title || '优伴AI'
+
+  const token = localStorage.getItem('youban_token')
+  const isAuthPage = to.meta.guest
+
+  // Pages that require auth
+  const requiresAuth = !to.meta.noLayout && !to.meta.guest
+  // Pages that require admin
+  const requiresAdmin = to.meta.admin
+
+  if (requiresAuth && !token) {
+    return next('/auth')
+  }
+
+  if (requiresAdmin && !token) {
+    return next('/auth')
+  }
+
+  if (isAuthPage && token) {
+    return next('/')
+  }
+
   next()
 })
 
