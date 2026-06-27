@@ -26,6 +26,18 @@ const PORT = process.env.PORT || 3001
 app.use(cors())
 app.use(express.json())
 
+// Request logging middleware
+app.use((req, res, next) => {
+  const start = Date.now()
+  res.on('finish', () => {
+    const duration = Date.now() - start
+    if (res.statusCode >= 400) {
+      console.log(`[${res.statusCode}] ${req.method} ${req.originalUrl} - ${duration}ms`)
+    }
+  })
+  next()
+})
+
 // ========== Auth Routes ==========
 app.post('/api/auth/register', register)
 app.post('/api/auth/login', login)

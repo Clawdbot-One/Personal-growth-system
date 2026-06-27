@@ -29,6 +29,10 @@ request.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       ElMessage.error('登录已过期，请重新登录')
+    } else if (error.response) {
+      const { status, config } = error.response
+      const msg = error.response.data?.message || error.message
+      ElMessage.error(`[${status}] ${msg}`)
     } else {
       ElMessage.error(error.message || '网络错误')
     }
