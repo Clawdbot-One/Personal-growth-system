@@ -1,8 +1,7 @@
 <template>
-  <AppLayout>
-    <div class="admin-dashboard">
-      <div class="page-header">
-        <h2>管理后台</h2>
+  <div class="admin-dashboard">
+    <div class="page-header">
+      <h2>管理后台</h2>
         <span class="header-date">{{ currentDate }}</span>
       </div>
 
@@ -181,13 +180,11 @@
         </el-table>
       </section>
     </div>
-  </AppLayout>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import AppLayout from '@/components/layout/AppLayout.vue'
 
 const router = useRouter()
 

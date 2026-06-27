@@ -18,7 +18,7 @@
             text
             size="large"
             class="login-btn"
-            @click="showLoginDialog = true"
+            @click="router.push('/auth')"
           >
             登录
           </el-button>
@@ -28,15 +28,24 @@
             size="large"
             round
             class="signup-btn"
-            @click="showLoginDialog = true"
+            @click="router.push('/auth?tab=register')"
           >
             免费注册
           </el-button>
-          <router-link v-else to="/growth" class="dashboard-link">
+          <router-link v-else to="/home" class="dashboard-link">
             <el-button type="primary" size="large" round>
-              进入我的成长
+              进入用户中心
             </el-button>
           </router-link>
+          <el-button
+            v-if="userStore.isLoggedIn"
+            text
+            size="large"
+            class="logout-btn"
+            @click="handleLogout"
+          >
+            退出登录
+          </el-button>
         </div>
       </div>
     </header>
@@ -230,31 +239,6 @@
       </div>
     </footer>
 
-    <!-- 登录弹窗 -->
-    <el-dialog v-model="showLoginDialog" title="欢迎回来" width="420px" :close-on-click-modal="false" center>
-      <div class="login-dialog-body">
-        <el-input
-          v-model="loginForm.phone"
-          placeholder="请输入手机号"
-          size="large"
-          :prefix-icon="Phone"
-          class="login-input"
-        />
-        <el-input
-          v-model="loginForm.password"
-          type="password"
-          placeholder="请输入密码"
-          size="large"
-          :prefix-icon="Lock"
-          show-password
-          class="login-input"
-        />
-        <el-button type="primary" size="large" class="login-submit" @click="handleLogin" round>
-          登录 / 注册
-        </el-button>
-        <p class="login-tip">首次登录将自动注册账号</p>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -262,14 +246,12 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { Phone, Lock } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const isScrolled = ref(false)
-const showLoginDialog = ref(false)
-const loginForm = ref({ phone: '', password: '' })
 
 function onScroll() {
   isScrolled.value = window.scrollY > 60
@@ -283,13 +265,9 @@ onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
 })
 
-function handleLogin() {
-  if (!loginForm.value.phone || !loginForm.value.password) {
-    return
-  }
-  userStore.login(loginForm.value.phone, loginForm.value.password)
-  showLoginDialog.value = false
-  loginForm.value = { phone: '', password: '' }
+function handleLogout() {
+  userStore.logout()
+  ElMessage.success('已退出登录')
 }
 
 const features = [
@@ -911,26 +889,6 @@ const testimonials = [
   text-align: center;
   font-size: 13px;
   color: #64748B;
-}
-
-/* Login Dialog */
-.login-dialog-body {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 8px 0;
-}
-.login-input {
-  width: 100%;
-}
-.login-submit {
-  width: 100%;
-  margin-top: 8px;
-}
-.login-tip {
-  text-align: center;
-  font-size: 12px;
-  color: var(--text-muted);
 }
 
 /* Responsive */

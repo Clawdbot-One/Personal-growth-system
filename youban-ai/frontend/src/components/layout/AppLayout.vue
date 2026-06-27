@@ -10,9 +10,9 @@
         <p class="logo-slogan">发现天赋优势，精准高效成长</p>
       </div>
       <nav class="sidebar-nav">
-        <router-link to="/" class="nav-item" active-class="active">
+        <router-link to="/home" class="nav-item" active-class="active">
           <el-icon><HomeFilled /></el-icon>
-          <span>首页</span>
+          <span>用户中心</span>
         </router-link>
         <router-link to="/assessment" class="nav-item" active-class="active">
           <el-icon><EditPen /></el-icon>
@@ -34,13 +34,17 @@
           <el-icon><UserFilled /></el-icon>
           <span>个人中心</span>
         </router-link>
+        <router-link v-if="userStore.user?.memberLevel === 'admin'" to="/admin" class="nav-item admin-nav" active-class="active">
+          <el-icon><Setting /></el-icon>
+          <span>后台管理</span>
+        </router-link>
       </nav>
       <div class="sidebar-footer">
         <div class="user-mini" @click="$router.push('/profile')">
           <el-avatar :size="36" icon="UserFilled" />
           <div class="user-info">
             <span class="user-name">{{ userStore.user?.nickname || '用户' }}</span>
-            <span class="user-level">免费版</span>
+            <span class="user-level">{{ userStore.user?.memberLevel === 'admin' ? '系统管理员' : userStore.user?.memberLevel === 'vip' ? 'VIP会员' : userStore.user?.memberLevel === 'premium' ? '高级版' : '免费版' }}</span>
           </div>
         </div>
       </div>
@@ -71,11 +75,19 @@
           <el-button circle @click="userStore.toggleTheme()">
             <el-icon><Moon v-if="!userStore.isDark" /><Sunny v-else /></el-icon>
           </el-button>
-          <el-badge :value="3" class="notice-badge">
-            <el-button circle>
-              <el-icon><Bell /></el-icon>
-            </el-button>
-          </el-badge>
+          <el-dropdown trigger="click">
+            <el-avatar :size="34" icon="UserFilled" class="cursor-pointer" />
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="$router.push('/profile')">
+                  <el-icon><UserFilled /></el-icon> 个人中心
+                </el-dropdown-item>
+                <el-dropdown-item @click="handleLogout" divided>
+                  <el-icon><SwitchButton /></el-icon> 退出登录
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
       </header>
 
@@ -87,7 +99,7 @@
 
     <!-- 移动端底部导航 -->
     <nav class="mobile-nav hide-desktop" v-if="isMobile">
-      <router-link to="/" class="tab-item" active-class="active">
+      <router-link to="/home" class="tab-item" active-class="active">
         <el-icon><HomeFilled /></el-icon>
         <span>首页</span>
       </router-link>
@@ -113,14 +125,22 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
 const isMobile = ref(false)
 
 const pageTitle = computed(() => route.meta.title || '优伴AI')
+
+function handleLogout() {
+  userStore.logout()
+  ElMessage.success('已退出登录')
+  router.push('/')
+}
 
 function checkMobile() {
   isMobile.value = window.innerWidth < 769
@@ -203,6 +223,20 @@ onUnmounted(() => {
 .nav-item.active {
   background: rgba(37, 99, 235, 0.1);
   color: var(--primary);
+  font-weight: 600;
+}
+.admin-nav {
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  padding-top: 16px;
+}
+.admin-nav:hover {
+  background: rgba(234, 179, 8, 0.08);
+  color: #d97706;
+}
+.admin-nav.active {
+  background: rgba(234, 179, 8, 0.12);
+  color: #d97706;
   font-weight: 600;
 }
 .sidebar-footer {

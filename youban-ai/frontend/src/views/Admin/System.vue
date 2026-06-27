@@ -1,164 +1,148 @@
 <template>
-  <AppLayout>
-    <div class="admin-system">
-      <div class="page-header">
-        <h2>系统配置</h2>
-      </div>
-
-      <!-- AI 参数配置 -->
-      <section class="config-section card">
-        <h3 class="section-title">
-          <el-icon><Cpu /></el-icon>
-          AI 参数配置
-        </h3>
-        <el-form :model="aiConfig" label-position="top" class="config-form">
-          <el-form-item label="模型温度 (Temperature)">
-            <div class="form-row-slider">
-              <el-slider v-model="aiConfig.temperature" :min="0" :max="2" :step="0.1" show-input />
-            </div>
-            <span class="form-hint">控制生成内容的随机性，值越高结果越多样</span>
-          </el-form-item>
-          <el-form-item label="最大 Token 数">
-            <el-input-number v-model="aiConfig.maxTokens" :min="256" :max="8192" :step="256" />
-            <span class="form-hint-inline">单次对话的最大输出长度</span>
-          </el-form-item>
-          <el-form-item label="Top-P 采样">
-            <div class="form-row-slider">
-              <el-slider v-model="aiConfig.topP" :min="0" :max="1" :step="0.05" show-input />
-            </div>
-            <span class="form-hint">核采样参数，控制生成内容的多样性</span>
-          </el-form-item>
-          <el-form-item label="系统提示词">
-            <el-input
-              v-model="aiConfig.systemPrompt"
-              type="textarea"
-              :rows="4"
-              placeholder="输入AI助手的系统提示词..."
-            />
-          </el-form-item>
-          <el-button type="primary" @click="saveConfig('ai')">保存 AI 配置</el-button>
-        </el-form>
-      </section>
-
-      <!-- 通知配置 -->
-      <section class="config-section card">
-        <h3 class="section-title">
-          <el-icon><Bell /></el-icon>
-          通知配置
-        </h3>
-        <el-form :model="notifyConfig" label-position="top" class="config-form">
-          <el-form-item label="推送通知">
-            <el-switch v-model="notifyConfig.pushEnabled" active-text="开启" inactive-text="关闭" />
-          </el-form-item>
-          <el-form-item label="短信通知">
-            <el-switch v-model="notifyConfig.smsEnabled" active-text="开启" inactive-text="关闭" />
-          </el-form-item>
-          <el-form-item label="邮件通知">
-            <el-switch v-model="notifyConfig.emailEnabled" active-text="开启" inactive-text="关闭" />
-          </el-form-item>
-          <el-form-item label="每日推送时间">
-            <el-time-select
-              v-model="notifyConfig.pushTime"
-              placeholder="选择时间"
-              start="06:00"
-              step="00:30"
-              end="23:00"
-            />
-          </el-form-item>
-          <el-form-item label="通知模板">
-            <el-input
-              v-model="notifyConfig.template"
-              type="textarea"
-              :rows="3"
-              placeholder="使用 {{name}} 等变量占位..."
-            />
-          </el-form-item>
-          <el-button type="primary" @click="saveConfig('notify')">保存通知配置</el-button>
-        </el-form>
-      </section>
-
-      <!-- 积分与权益 -->
-      <section class="config-section card">
-        <h3 class="section-title">
-          <el-icon><Coin /></el-icon>
-          积分与权益
-        </h3>
-        <el-form :model="pointsConfig" label-position="top" class="config-form">
-          <div class="points-grid">
-            <el-form-item label="每日签到积分">
-              <el-input-number v-model="pointsConfig.dailyCheckin" :min="1" :max="100" />
-            </el-form-item>
-            <el-form-item label="完成测评积分">
-              <el-input-number v-model="pointsConfig.assessmentComplete" :min="10" :max="500" :step="10" />
-            </el-form-item>
-            <el-form-item label="实践打卡积分">
-              <el-input-number v-model="pointsConfig.practiceCheckin" :min="5" :max="200" :step="5" />
-            </el-form-item>
-            <el-form-item label="邀请好友积分">
-              <el-input-number v-model="pointsConfig.inviteFriend" :min="10" :max="500" :step="10" />
-            </el-form-item>
-          </div>
-          <el-form-item label="高级会员权益">
-            <div class="benefits-list">
-              <el-checkbox v-model="pointsConfig.benefits" label="ai_assistant" :true-value="'ai_assistant'" :false-value="''">AI助手无限使用</el-checkbox>
-              <el-checkbox v-model="pointsConfig.benefits" label="full_report" :true-value="'full_report'" :false-value="''">完整测评报告</el-checkbox>
-              <el-checkbox v-model="pointsConfig.benefits" label="expert_consult" :true-value="'expert_consult'" :false-value="''">专家咨询服务</el-checkbox>
-              <el-checkbox v-model="pointsConfig.benefits" label="priority_support" :true-value="'priority_support'" :false-value="''">优先技术支持</el-checkbox>
-            </div>
-          </el-form-item>
-          <el-button type="primary" @click="saveConfig('points')">保存积分配置</el-button>
-        </el-form>
-      </section>
-
-      <!-- 版本管理 -->
-      <section class="config-section card">
-        <h3 class="section-title">
-          <el-icon><Monitor /></el-icon>
-          版本管理
-        </h3>
-        <el-form :model="versionConfig" label-position="top" class="config-form">
-          <div class="version-grid">
-            <el-form-item label="当前版本">
-              <el-input v-model="versionConfig.currentVersion" disabled />
-            </el-form-item>
-            <el-form-item label="最新版本">
-              <el-input v-model="versionConfig.latestVersion" placeholder="v2.1.0" />
-            </el-form-item>
-            <el-form-item label="最低支持版本">
-              <el-input v-model="versionConfig.minVersion" placeholder="v1.5.0" />
-            </el-form-item>
-            <el-form-item label="强制更新">
-              <el-switch v-model="versionConfig.forceUpdate" active-text="是" inactive-text="否" />
-            </el-form-item>
-          </div>
-          <el-form-item label="更新日志">
-            <el-input
-              v-model="versionConfig.changelog"
-              type="textarea"
-              :rows="4"
-              placeholder="请输入版本更新内容..."
-            />
-          </el-form-item>
-          <el-form-item label="下载地址">
-            <el-input v-model="versionConfig.downloadUrl" placeholder="https://..." />
-          </el-form-item>
-          <el-button type="primary" @click="saveConfig('version')">保存版本配置</el-button>
-        </el-form>
-      </section>
+  <div class="admin-system">
+    <div class="page-header">
+      <h2>系统配置</h2>
     </div>
-  </AppLayout>
+
+    <!-- AI 参数配置 -->
+    <section class="config-section card">
+      <h3 class="section-title">
+        <el-icon><Cpu /></el-icon>
+        AI 参数配置
+      </h3>
+      <el-form :model="aiConfig" label-position="top" class="config-form">
+        <el-form-item label="模型温度 (Temperature)">
+          <el-slider v-model="aiConfig.temperature" :min="0" :max="2" :step="0.1" :show-input="true" />
+          <span class="form-hint">控制生成内容的随机性，值越高结果越多样</span>
+        </el-form-item>
+        <el-form-item label="最大 Token 数">
+          <el-input-number v-model="aiConfig.maxTokens" :min="256" :max="8192" :step="256" />
+          <span class="form-hint-inline">单次对话的最大输出长度</span>
+        </el-form-item>
+        <el-form-item label="Top-P 采样">
+          <el-slider v-model="aiConfig.topP" :min="0" :max="1" :step="0.05" :show-input="true" />
+          <span class="form-hint">核采样参数，控制生成内容的多样性</span>
+        </el-form-item>
+        <el-form-item label="系统提示词">
+          <el-input v-model="aiConfig.systemPrompt" type="textarea" :rows="4" placeholder="输入AI助手的系统提示词..." />
+        </el-form-item>
+        <el-button type="primary" @click="saveConfig('ai')">保存 AI 配置</el-button>
+      </el-form>
+    </section>
+
+    <!-- 通知配置 -->
+    <section class="config-section card">
+      <h3 class="section-title">
+        <el-icon><Bell /></el-icon>
+        通知配置
+      </h3>
+      <el-form :model="notifyConfig" label-position="top" class="config-form">
+        <el-form-item label="推送通知">
+          <el-switch v-model="notifyConfig.pushEnabled" active-text="开启" inactive-text="关闭" />
+        </el-form-item>
+        <el-form-item label="短信通知">
+          <el-switch v-model="notifyConfig.smsEnabled" active-text="开启" inactive-text="关闭" />
+        </el-form-item>
+        <el-form-item label="邮件通知">
+          <el-switch v-model="notifyConfig.emailEnabled" active-text="开启" inactive-text="关闭" />
+        </el-form-item>
+        <el-form-item label="每日推送时间">
+          <el-select v-model="notifyConfig.pushTime" placeholder="选择时间">
+            <el-option v-for="t in timeOptions" :key="t" :label="t" :value="t" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="通知模板">
+          <el-input v-model="notifyConfig.template" type="textarea" :rows="3" placeholder="使用 {{name}} 等变量占位..." />
+        </el-form-item>
+        <el-button type="primary" @click="saveConfig('notify')">保存通知配置</el-button>
+      </el-form>
+    </section>
+
+    <!-- 积分与权益 -->
+    <section class="config-section card">
+      <h3 class="section-title">
+        <el-icon><Coin /></el-icon>
+        积分与权益
+      </h3>
+      <el-form :model="pointsConfig" label-position="top" class="config-form">
+        <div class="points-grid">
+          <el-form-item label="每日签到积分">
+            <el-input-number v-model="pointsConfig.dailyCheckin" :min="1" :max="100" />
+          </el-form-item>
+          <el-form-item label="完成测评积分">
+            <el-input-number v-model="pointsConfig.assessmentComplete" :min="10" :max="500" :step="10" />
+          </el-form-item>
+          <el-form-item label="实践打卡积分">
+            <el-input-number v-model="pointsConfig.practiceCheckin" :min="5" :max="200" :step="5" />
+          </el-form-item>
+          <el-form-item label="邀请好友积分">
+            <el-input-number v-model="pointsConfig.inviteFriend" :min="10" :max="500" :step="10" />
+          </el-form-item>
+        </div>
+        <el-form-item label="高级会员权益">
+          <el-checkbox-group v-model="pointsConfig.benefits" class="benefits-list">
+            <el-checkbox label="ai_assistant">AI助手无限使用</el-checkbox>
+            <el-checkbox label="full_report">完整测评报告</el-checkbox>
+            <el-checkbox label="expert_consult">专家咨询服务</el-checkbox>
+            <el-checkbox label="priority_support">优先技术支持</el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+        <el-button type="primary" @click="saveConfig('points')">保存积分配置</el-button>
+      </el-form>
+    </section>
+
+    <!-- 版本管理 -->
+    <section class="config-section card">
+      <h3 class="section-title">
+        <el-icon><Monitor /></el-icon>
+        版本管理
+      </h3>
+      <el-form :model="versionConfig" label-position="top" class="config-form">
+        <div class="version-grid">
+          <el-form-item label="当前版本">
+            <el-input v-model="versionConfig.currentVersion" disabled />
+          </el-form-item>
+          <el-form-item label="最新版本">
+            <el-input v-model="versionConfig.latestVersion" placeholder="v2.1.0" />
+          </el-form-item>
+          <el-form-item label="最低支持版本">
+            <el-input v-model="versionConfig.minVersion" placeholder="v1.5.0" />
+          </el-form-item>
+          <el-form-item label="强制更新">
+            <el-switch v-model="versionConfig.forceUpdate" active-text="是" inactive-text="否" />
+          </el-form-item>
+        </div>
+        <el-form-item label="更新日志">
+          <el-input v-model="versionConfig.changelog" type="textarea" :rows="4" placeholder="请输入版本更新内容..." />
+        </el-form-item>
+        <el-form-item label="下载地址">
+          <el-input v-model="versionConfig.downloadUrl" placeholder="https://..." />
+        </el-form-item>
+        <el-button type="primary" @click="saveConfig('version')">保存版本配置</el-button>
+      </el-form>
+    </section>
+  </div>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import AppLayout from '@/components/layout/AppLayout.vue'
 
 const aiConfig = reactive({
   temperature: 0.7,
   maxTokens: 2048,
   topP: 0.9,
   systemPrompt: '你是一个专业的个人成长AI助手，帮助用户发现天赋优势、制定成长计划。回答时请保持专业、温暖、鼓励的语气。',
+})
+
+const timeOptions = computed(() => {
+  const times = []
+  for (let h = 6; h <= 23; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      times.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
+    }
+  }
+  return times
 })
 
 const notifyConfig = reactive({
@@ -233,9 +217,6 @@ function saveConfig(section) {
   max-width: 640px;
 }
 
-.form-row-slider {
-  width: 100%;
-}
 .form-hint {
   font-size: 12px;
   color: var(--text-muted);
@@ -266,7 +247,6 @@ function saveConfig(section) {
   gap: 0 24px;
 }
 
-/* 响应式 */
 @media (max-width: 768px) {
   .config-section {
     padding: 16px;
