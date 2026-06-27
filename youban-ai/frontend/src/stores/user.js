@@ -49,8 +49,8 @@ export const useUserStore = defineStore('user', () => {
     return false
   }
 
-  async function register(username, password, nickname) {
-    const res = await request.post('/auth/register', { username, password, nickname })
+  async function register(username, password, nickname, phone, email) {
+    const res = await request.post('/auth/register', { username, password, nickname, phone, email: email || undefined })
     if (res.code === 0) {
       token.value = res.data.token
       user.value = res.data.user

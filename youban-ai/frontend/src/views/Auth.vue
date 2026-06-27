@@ -58,9 +58,10 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import request from '@/api/request.js'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 const activeTab = ref('login')
 const loading = ref(false)
 const loginFormRef = ref(null)
@@ -111,14 +112,9 @@ async function handleLogin() {
 
   loading.value = true
   try {
-    const res = await request.post('/auth/login', {
-      username: loginForm.username,
-      password: loginForm.password,
-    })
-    if (res.code === 0) {
-      localStorage.setItem('youban_token', res.data.token)
-      localStorage.setItem('youban_user', JSON.stringify(res.data.user))
-      ElMessage.success(res.message || '登录成功')
+    const success = await userStore.login(loginForm.username, loginForm.password)
+    if (success) {
+      ElMessage.success('登录成功')
       router.push('/home')
     }
   } catch (e) {
@@ -134,17 +130,15 @@ async function handleRegister() {
 
   loading.value = true
   try {
-    const res = await request.post('/auth/register', {
-      username: registerForm.username,
-      nickname: registerForm.nickname,
-      phone: registerForm.phone,
-      email: registerForm.email || undefined,
-      password: registerForm.password,
-    })
-    if (res.code === 0) {
-      localStorage.setItem('youban_token', res.data.token)
-      localStorage.setItem('youban_user', JSON.stringify(res.data.user))
-      ElMessage.success(res.message || '注册成功')
+    const success = await userStore.register(
+      registerForm.username,
+      registerForm.password,
+      registerForm.nickname,
+      registerForm.phone,
+      registerForm.email,
+    )
+    if (success) {
+      ElMessage.success('注册成功')
       router.push('/home')
     }
   } catch (e) {
