@@ -183,7 +183,7 @@ const ratioColor = computed(() => {
 
 async function fetchZone() {
   try {
-    const res = await request.get(`/dp/zone?area=${encodeURIComponent(selectedArea.value)}`)
+    const res = await request.get(`/dp/zone?area=${encodeURIComponent(selectedArea.value)}&_t=${Date.now()}`)
     if (res.code === 0) {
       zoneData.value = res.data
       await nextTick()

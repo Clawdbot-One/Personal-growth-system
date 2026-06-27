@@ -343,7 +343,7 @@ async function fetchQuality() {
 
 async function refreshZone(area) {
   try {
-    const res = await request.get(`/dp/zone?area=${encodeURIComponent(area || '战略思维')}`)
+    const res = await request.get(`/dp/zone?area=${encodeURIComponent(area || '战略思维')}&_t=${Date.now()}`)
     if (res.code === 0) zoneData.value = res.data
   } catch { /* ignore */ }
 }
@@ -353,7 +353,7 @@ onMounted(() => {
   fetchPlans()
   fetchSessions()
   fetchQuality()
-  refreshZone('战略思维')
+  // zoneData 已通过 fetchDashboard 中的 d.zoneData 加载，无需单独调用 refreshZone
 })
 
 // 新建计划
