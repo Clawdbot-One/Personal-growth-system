@@ -145,7 +145,6 @@
         </el-form>
       </section>
     </div>
-  </div>
 </template>
 
 <script setup>

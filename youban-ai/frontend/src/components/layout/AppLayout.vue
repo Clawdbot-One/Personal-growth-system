@@ -34,10 +34,10 @@
           <el-icon><UserFilled /></el-icon>
           <span>个人中心</span>
         </router-link>
-        <a v-if="userStore.user?.memberLevel === 'admin'" class="nav-item admin-nav" @click.prevent="goAdmin">
+        <router-link v-if="userStore.user?.memberLevel === 'admin'" to="/admin" class="nav-item admin-nav" active-class="active">
           <el-icon><Setting /></el-icon>
           <span>后台管理</span>
-        </a>
+        </router-link>
       </nav>
       <div class="sidebar-footer">
         <div class="user-mini" @click="$router.push('/profile')">
@@ -142,10 +142,6 @@ function handleLogout() {
   router.push('/')
 }
 
-function goAdmin() {
-  router.push('/admin')
-}
-
 function checkMobile() {
   isMobile.value = window.innerWidth < 769
 }
@@ -227,6 +223,20 @@ onUnmounted(() => {
 .nav-item.active {
   background: rgba(37, 99, 235, 0.1);
   color: var(--primary);
+  font-weight: 600;
+}
+.admin-nav {
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  padding-top: 16px;
+}
+.admin-nav:hover {
+  background: rgba(234, 179, 8, 0.08);
+  color: #d97706;
+}
+.admin-nav.active {
+  background: rgba(234, 179, 8, 0.12);
+  color: #d97706;
   font-weight: 600;
 }
 .sidebar-footer {

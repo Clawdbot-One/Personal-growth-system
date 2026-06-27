@@ -57,7 +57,11 @@
         <h2>{{ pageTitle }}</h2>
       </header>
       <div class="admin-content">
-        <slot />
+        <router-view v-slot="{ Component, route: childRoute }">
+          <transition name="admin-fade" mode="out-in">
+            <component :is="Component" :key="childRoute.path" />
+          </transition>
+        </router-view>
       </div>
     </div>
   </div>
@@ -205,5 +209,19 @@ function handleLogout() {
 .admin-content {
   flex: 1;
   padding: 24px;
+}
+
+/* Admin sub-page transitions */
+.admin-fade-enter-active,
+.admin-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.admin-fade-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.admin-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>

@@ -180,7 +180,6 @@
         </el-table>
       </section>
     </div>
-  </div>
 </template>
 
 <script setup>
