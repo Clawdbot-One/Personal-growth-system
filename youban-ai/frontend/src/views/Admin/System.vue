@@ -98,12 +98,12 @@
             </el-form-item>
           </div>
           <el-form-item label="高级会员权益">
-            <div class="benefits-list">
-              <el-checkbox v-model="pointsConfig.benefits" label="ai_assistant" :true-value="'ai_assistant'" :false-value="''">AI助手无限使用</el-checkbox>
-              <el-checkbox v-model="pointsConfig.benefits" label="full_report" :true-value="'full_report'" :false-value="''">完整测评报告</el-checkbox>
-              <el-checkbox v-model="pointsConfig.benefits" label="expert_consult" :true-value="'expert_consult'" :false-value="''">专家咨询服务</el-checkbox>
-              <el-checkbox v-model="pointsConfig.benefits" label="priority_support" :true-value="'priority_support'" :false-value="''">优先技术支持</el-checkbox>
-            </div>
+            <el-checkbox-group v-model="pointsConfig.benefits" class="benefits-list">
+              <el-checkbox label="ai_assistant">AI助手无限使用</el-checkbox>
+              <el-checkbox label="full_report">完整测评报告</el-checkbox>
+              <el-checkbox label="expert_consult">专家咨询服务</el-checkbox>
+              <el-checkbox label="priority_support">优先技术支持</el-checkbox>
+            </el-checkbox-group>
           </el-form-item>
           <el-button type="primary" @click="saveConfig('points')">保存积分配置</el-button>
         </el-form>
