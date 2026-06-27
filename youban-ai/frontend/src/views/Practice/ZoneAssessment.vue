@@ -1,5 +1,5 @@
 <template>
-  <div class="zone-page">
+  <AppLayout>
     <div class="page-header">
       <h2>三区自适应难度分析</h2>
       <p class="subtitle">基于舒适区-学习区-恐慌区模型，确保你始终在最佳训练区间</p>
@@ -142,7 +142,7 @@
         </el-card>
       </div>
     </div>
-  </div>
+  </AppLayout>
 </template>
 
 <script setup>
@@ -150,6 +150,7 @@ import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import * as echarts from 'echarts'
 import { WarningFilled, SuccessFilled, CircleCloseFilled, InfoFilled } from '@element-plus/icons-vue'
 import request from '@/api/request.js'
+import AppLayout from '@/components/layout/AppLayout.vue'
 
 const selectedArea = ref('战略思维')
 const zoneData = ref(null)
@@ -222,7 +223,6 @@ watch(selectedArea, fetchZone)
 </script>
 
 <style scoped>
-.zone-page { max-width: 1200px; margin: 0 auto; }
 .page-header { margin-bottom: 20px; }
 .page-header h2 { font-size: 22px; font-weight: 700; color: #303133; margin: 0; }
 .subtitle { color: #909399; font-size: 14px; margin-top: 4px; }

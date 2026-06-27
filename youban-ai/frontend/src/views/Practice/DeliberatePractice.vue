@@ -1,5 +1,5 @@
 <template>
-  <div class="deliberate-practice">
+  <AppLayout>
     <div class="page-header">
       <h2>刻意练习</h2>
       <p class="subtitle">基于《刻意练习》黄金标准，科学训练你的优势能力</p>
@@ -258,7 +258,7 @@
         <el-button @click="showFeedbackDialog = false">关闭</el-button>
       </template>
     </el-dialog>
-  </div>
+  </AppLayout>
 </template>
 
 <script setup>
@@ -266,12 +266,13 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, DataAnalysis, DataLine, Timer, InfoFilled, TrendCharts, TrophyBase, Checked, Calendar } from '@element-plus/icons-vue'
 import request from '@/api/request.js'
+import AppLayout from '@/components/layout/AppLayout.vue'
 
 const stats = ref([
-  { label: '总练习次数', value: 0, icon: 'TrendCharts', bg: 'rgba(37,99,235,0.1)' },
-  { label: '平均质量分', value: 0, icon: 'TrophyBase', bg: 'rgba(16,185,129,0.1)' },
-  { label: '学习区占比', value: '0%', icon: 'Checked', bg: 'rgba(245,158,11,0.1)' },
-  { label: '最佳专注时段', value: '--', icon: 'Calendar', bg: 'rgba(139,92,246,0.1)' },
+  { label: '总练习次数', value: 0, icon: TrendCharts, bg: 'rgba(37,99,235,0.1)' },
+  { label: '平均质量分', value: 0, icon: TrophyBase, bg: 'rgba(16,185,129,0.1)' },
+  { label: '学习区占比', value: '0%', icon: Checked, bg: 'rgba(245,158,11,0.1)' },
+  { label: '最佳专注时段', value: '--', icon: Calendar, bg: 'rgba(139,92,246,0.1)' },
 ])
 
 const plans = ref([])
@@ -454,7 +455,6 @@ async function handleSubmitPractice() {
 </script>
 
 <style scoped>
-.deliberate-practice { max-width: 1200px; margin: 0 auto; }
 .page-header { margin-bottom: 20px; }
 .page-header h2 { font-size: 22px; font-weight: 700; color: #303133; margin: 0; }
 .subtitle { color: #909399; font-size: 14px; margin-top: 4px; }

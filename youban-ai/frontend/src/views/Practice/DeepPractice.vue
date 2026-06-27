@@ -1,179 +1,176 @@
 <template>
-  <div class="deep-practice" :class="{ 'is-active': isActive }">
-    <!-- 非专注模式 -->
-    <div v-if="!isActive" class="prep-screen">
-      <div class="page-header">
-        <h2>深度练习模式</h2>
-        <p class="subtitle">进入全屏沉浸式练习，关闭所有干扰，只专注一件事</p>
+  <AppLayout v-if="!isActive">
+    <div class="page-header">
+      <h2>深度练习模式</h2>
+      <p class="subtitle">进入全屏沉浸式练习，关闭所有干扰，只专注一件事</p>
+    </div>
+
+    <div class="content-grid">
+      <div class="main-col">
+        <el-card class="section-card" shadow="never">
+          <template #header>
+            <span class="card-title">开始深度练习</span>
+          </template>
+          <div class="start-form">
+            <div class="form-group">
+              <label>练习目标</label>
+              <el-input v-model="goal" placeholder="用一句话描述本次练习要达到的具体目标" maxlength="100" show-word-limit />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>定时时长（分钟）</label>
+                <div class="duration-selector">
+                  <el-radio-group v-model="duration" size="large">
+                    <el-radio-button :value="15">15分钟</el-radio-button>
+                    <el-radio-button :value="25">25分钟</el-radio-button>
+                    <el-radio-button :value="45">45分钟</el-radio-button>
+                    <el-radio-button :value="60">60分钟</el-radio-button>
+                  </el-radio-group>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>练习模式</label>
+              <div class="mode-selector">
+                <div class="mode-card" :class="{ active: mode === 'normal' }" @click="mode = 'normal'">
+                  <div class="mode-icon">🟢</div>
+                  <div class="mode-name">标准模式</div>
+                  <div class="mode-desc">基础计时，温和提醒</div>
+                </div>
+                <div class="mode-card" :class="{ active: mode === 'deep' }" @click="mode = 'deep'">
+                  <div class="mode-icon">🔵</div>
+                  <div class="mode-name">深度模式</div>
+                  <div class="mode-desc">全屏沉浸，专注增强</div>
+                </div>
+                <div class="mode-card" :class="{ active: mode === 'strict' }" @click="mode = 'strict'">
+                  <div class="mode-icon">🔴</div>
+                  <div class="mode-name">严格模式</div>
+                  <div class="mode-desc">强制锁定，零干扰</div>
+                </div>
+              </div>
+            </div>
+            <el-button type="primary" size="large" class="start-btn" @click="startDeepPractice" :disabled="!goal.trim()">
+              <el-icon><VideoPlay /></el-icon> 开始深度练习
+            </el-button>
+          </div>
+        </el-card>
       </div>
 
-      <div class="content-grid">
-        <div class="main-col">
-          <el-card class="section-card" shadow="never">
-            <template #header>
-              <span class="card-title">开始深度练习</span>
-            </template>
-            <div class="start-form">
-              <div class="form-group">
-                <label>练习目标</label>
-                <el-input v-model="goal" placeholder="用一句话描述本次练习要达到的具体目标" maxlength="100" show-word-limit />
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label>定时时长（分钟）</label>
-                  <div class="duration-selector">
-                    <el-radio-group v-model="duration" size="large">
-                      <el-radio-button :value="15">15分钟</el-radio-button>
-                      <el-radio-button :value="25">25分钟</el-radio-button>
-                      <el-radio-button :value="45">45分钟</el-radio-button>
-                      <el-radio-button :value="60">60分钟</el-radio-button>
-                    </el-radio-group>
-                  </div>
-                </div>
-              </div>
-              <div class="form-group">
-                <label>练习模式</label>
-                <div class="mode-selector">
-                  <div class="mode-card" :class="{ active: mode === 'normal' }" @click="mode = 'normal'">
-                    <div class="mode-icon">🟢</div>
-                    <div class="mode-name">标准模式</div>
-                    <div class="mode-desc">基础计时，温和提醒</div>
-                  </div>
-                  <div class="mode-card" :class="{ active: mode === 'deep' }" @click="mode = 'deep'">
-                    <div class="mode-icon">🔵</div>
-                    <div class="mode-name">深度模式</div>
-                    <div class="mode-desc">全屏沉浸，专注增强</div>
-                  </div>
-                  <div class="mode-card" :class="{ active: mode === 'strict' }" @click="mode = 'strict'">
-                    <div class="mode-icon">🔴</div>
-                    <div class="mode-name">严格模式</div>
-                    <div class="mode-desc">强制锁定，零干扰</div>
-                  </div>
-                </div>
-              </div>
-              <el-button type="primary" size="large" class="start-btn" @click="startDeepPractice" :disabled="!goal.trim()">
-                <el-icon><VideoPlay /></el-icon> 开始深度练习
-              </el-button>
+      <div class="side-col">
+        <el-card class="section-card" shadow="never">
+          <template #header>
+            <span class="card-title">专注力统计</span>
+          </template>
+          <div v-if="focusData" class="focus-stats">
+            <div class="focus-big">
+              <span class="fb-num">{{ focusData.analysis?.avgFocusScore || 0 }}</span>
+              <span class="fb-label">平均专注评分</span>
             </div>
-          </el-card>
+            <div class="focus-meta">
+              <div class="fm-item">
+                <span class="fm-value">{{ focusData.analysis?.totalSessions || 0 }}</span>
+                <span class="fm-label">总训练次数</span>
+              </div>
+              <div class="fm-item">
+                <span class="fm-value">{{ focusData.analysis?.avgDistractions || 0 }}</span>
+                <span class="fm-label">平均分心次数</span>
+              </div>
+              <div class="fm-item">
+                <span class="fm-value">{{ focusData.analysis?.bestTimeSlot || '--' }}</span>
+                <span class="fm-label">最佳时段</span>
+              </div>
+            </div>
+          </div>
+        </el-card>
+
+        <el-card class="section-card" shadow="never">
+          <template #header>
+            <span class="card-title">历史记录</span>
+          </template>
+          <div v-if="focusData?.sessions?.length" class="history-list">
+            <div v-for="s in focusData.sessions.slice(0, 8)" :key="s.id" class="history-item">
+              <span class="hi-duration">{{ s.durationMinutes }}分钟</span>
+              <span class="hi-mode">
+                <el-tag :type="s.mode === 'strict' ? 'danger' : s.mode === 'deep' ? '' : 'info'" size="small">
+                  {{ s.mode === 'strict' ? '严格' : s.mode === 'deep' ? '深度' : '标准' }}
+                </el-tag>
+              </span>
+              <span class="hi-score">专注 {{ s.focusScore }}</span>
+              <span class="hi-time">{{ s.createdAt?.slice(0, 10) }}</span>
+            </div>
+          </div>
+          <el-empty v-else description="暂无记录" :image-size="60" />
+        </el-card>
+      </div>
+    </div>
+  </AppLayout>
+
+  <!-- 深度练习激活状态 - 全屏覆盖 -->
+  <div v-if="isActive" class="active-screen" :class="mode">
+    <div class="focus-overlay">
+      <div class="focus-center">
+        <div class="timer-display">
+          <span class="timer-minutes">{{ formatTime.timeLeft }}</span>
+        </div>
+        <div class="timer-goal" v-if="goal">{{ goal }}</div>
+        <div class="timer-status">
+          <el-tag :type="mode === 'strict' ? 'danger' : 'primary'" size="large">
+            {{ mode === 'strict' ? '严格模式' : mode === 'deep' ? '深度模式' : '标准模式' }}
+          </el-tag>
         </div>
 
-        <div class="side-col">
-          <el-card class="section-card" shadow="never">
-            <template #header>
-              <span class="card-title">专注力统计</span>
-            </template>
-            <div v-if="focusData" class="focus-stats">
-              <div class="focus-big">
-                <span class="fb-num">{{ focusData.analysis?.avgFocusScore || 0 }}</span>
-                <span class="fb-label">平均专注评分</span>
-              </div>
-              <div class="focus-meta">
-                <div class="fm-item">
-                  <span class="fm-value">{{ focusData.analysis?.totalSessions || 0 }}</span>
-                  <span class="fm-label">总训练次数</span>
-                </div>
-                <div class="fm-item">
-                  <span class="fm-value">{{ focusData.analysis?.avgDistractions || 0 }}</span>
-                  <span class="fm-label">平均分心次数</span>
-                </div>
-                <div class="fm-item">
-                  <span class="fm-value">{{ focusData.analysis?.bestTimeSlot || '--' }}</span>
-                  <span class="fm-label">最佳时段</span>
-                </div>
-              </div>
-            </div>
-          </el-card>
+        <div class="timer-actions">
+          <el-button v-if="!isRunning && !isPaused" type="primary" size="large" round @click="startTimer">
+            <el-icon><VideoPlay /></el-icon> 开始
+          </el-button>
+          <el-button v-if="isRunning" type="warning" size="large" round @click="pauseTimer">
+            <el-icon><VideoPause /></el-icon> 暂停
+          </el-button>
+          <el-button v-if="isPaused" type="primary" size="large" round @click="resumeTimer">
+            <el-icon><VideoPlay /></el-icon> 继续
+          </el-button>
+          <el-button size="large" round @click="endSession">
+            <el-icon><Close /></el-icon> 结束练习
+          </el-button>
+        </div>
+      </div>
 
-          <el-card class="section-card" shadow="never">
-            <template #header>
-              <span class="card-title">历史记录</span>
-            </template>
-            <div v-if="focusData?.sessions?.length" class="history-list">
-              <div v-for="s in focusData.sessions.slice(0, 8)" :key="s.id" class="history-item">
-                <span class="hi-duration">{{ s.durationMinutes }}分钟</span>
-                <span class="hi-mode">
-                  <el-tag :type="s.mode === 'strict' ? 'danger' : s.mode === 'deep' ? '' : 'info'" size="small">
-                    {{ s.mode === 'strict' ? '严格' : s.mode === 'deep' ? '深度' : '标准' }}
-                  </el-tag>
-                </span>
-                <span class="hi-score">专注 {{ s.focusScore }}</span>
-                <span class="hi-time">{{ s.createdAt?.slice(0, 10) }}</span>
-              </div>
-            </div>
-            <el-empty v-else description="暂无记录" :image-size="60" />
-          </el-card>
+      <div class="focus-footer">
+        <div class="distraction-counter" v-if="isRunning">
+          <el-button type="danger" plain round size="small" @click="recordDistraction">
+            <el-icon><Warning /></el-icon> 记录分心 ({{ distractionCount }})
+          </el-button>
         </div>
       </div>
     </div>
-
-    <!-- 深度练习激活状态 -->
-    <div v-else class="active-screen" :class="mode">
-      <div class="focus-overlay">
-        <div class="focus-center">
-          <div class="timer-display">
-            <span class="timer-minutes">{{ formatTime.timeLeft }}</span>
-          </div>
-          <div class="timer-goal" v-if="goal">{{ goal }}</div>
-          <div class="timer-status">
-            <el-tag :type="mode === 'strict' ? 'danger' : 'primary'" size="large">
-              {{ mode === 'strict' ? '严格模式' : mode === 'deep' ? '深度模式' : '标准模式' }}
-            </el-tag>
-          </div>
-
-          <div class="timer-actions">
-            <el-button v-if="!isRunning && !isPaused" type="primary" size="large" round @click="startTimer">
-              <el-icon><VideoPlay /></el-icon> 开始
-            </el-button>
-            <el-button v-if="isRunning" type="warning" size="large" round @click="pauseTimer">
-              <el-icon><VideoPause /></el-icon> 暂停
-            </el-button>
-            <el-button v-if="isPaused" type="primary" size="large" round @click="resumeTimer">
-              <el-icon><VideoPlay /></el-icon> 继续
-            </el-button>
-            <el-button size="large" round @click="endSession">
-              <el-icon><Close /></el-icon> 结束练习
-            </el-button>
-          </div>
-        </div>
-
-        <div class="focus-footer">
-          <div class="distraction-counter" v-if="isRunning">
-            <el-button type="danger" plain round size="small" @click="recordDistraction">
-              <el-icon><Warning /></el-icon> 记录分心 ({{ distractionCount }})
-            </el-button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 结束弹窗 -->
-    <el-dialog v-model="showEndDialog" title="练习完成" width="480px" :close-on-click-modal="false">
-      <div class="end-summary">
-        <div class="end-score">
-          <span class="big-num">{{ endFocusScore }}</span>
-          <span class="score-label">专注评分</span>
-        </div>
-        <div class="end-stats">
-          <div class="end-stat">
-            <span class="es-label">总时长</span>
-            <span class="es-value">{{ actualDuration }}分钟</span>
-          </div>
-          <div class="end-stat">
-            <span class="es-label">分心次数</span>
-            <span class="es-value">{{ distractionCount }}</span>
-          </div>
-          <div class="end-stat">
-            <span class="es-label">专注效率</span>
-            <span class="es-value">{{ focusEfficiency }}%</span>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <el-button type="primary" @click="saveSession">保存并退出</el-button>
-      </template>
-    </el-dialog>
   </div>
+
+  <!-- 结束弹窗 -->
+  <el-dialog v-model="showEndDialog" title="练习完成" width="480px" :close-on-click-modal="false">
+    <div class="end-summary">
+      <div class="end-score">
+        <span class="big-num">{{ endFocusScore }}</span>
+        <span class="score-label">专注评分</span>
+      </div>
+      <div class="end-stats">
+        <div class="end-stat">
+          <span class="es-label">总时长</span>
+          <span class="es-value">{{ actualDuration }}分钟</span>
+        </div>
+        <div class="end-stat">
+          <span class="es-label">分心次数</span>
+          <span class="es-value">{{ distractionCount }}</span>
+        </div>
+        <div class="end-stat">
+          <span class="es-label">专注效率</span>
+          <span class="es-value">{{ focusEfficiency }}%</span>
+        </div>
+      </div>
+    </div>
+    <template #footer>
+      <el-button type="primary" @click="saveSession">保存并退出</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
@@ -181,6 +178,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { VideoPlay, VideoPause, Close, Warning } from '@element-plus/icons-vue'
 import request from '@/api/request.js'
+import AppLayout from '@/components/layout/AppLayout.vue'
 
 const goal = ref('')
 const duration = ref(25)
@@ -309,7 +307,6 @@ onUnmounted(() => { clearInterval(timerInterval) })
 </script>
 
 <style scoped>
-.deep-practice { max-width: 1200px; margin: 0 auto; }
 .page-header { margin-bottom: 20px; }
 .page-header h2 { font-size: 22px; font-weight: 700; color: #303133; margin: 0; }
 .subtitle { color: #909399; font-size: 14px; margin-top: 4px; }

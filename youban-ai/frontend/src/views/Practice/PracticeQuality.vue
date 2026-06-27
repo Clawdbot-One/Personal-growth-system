@@ -1,5 +1,5 @@
 <template>
-  <div class="quality-page">
+  <AppLayout>
     <div class="page-header">
       <h2>练习质量分析</h2>
       <p class="subtitle">基于刻意练习四维度（目标明确度、走出舒适区、即时反馈、高度专注）评估每次练习质量</p>
@@ -87,13 +87,14 @@
         </el-card>
       </div>
     </div>
-  </div>
+  </AppLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import request from '@/api/request.js'
+import AppLayout from '@/components/layout/AppLayout.vue'
 
 const daysFilter = ref(30)
 const scores = ref([])
@@ -187,7 +188,6 @@ watch(daysFilter, fetchData)
 </script>
 
 <style scoped>
-.quality-page { max-width: 1200px; margin: 0 auto; }
 .page-header { margin-bottom: 20px; }
 .page-header h2 { font-size: 22px; font-weight: 700; color: #303133; margin: 0; }
 .subtitle { color: #909399; font-size: 14px; margin-top: 4px; }
