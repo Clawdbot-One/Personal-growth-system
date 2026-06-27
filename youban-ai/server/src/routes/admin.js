@@ -105,13 +105,16 @@ export function getMemberDetail(req, res) {
 
 export function updateMemberStatus(req, res) {
   const { id } = req.params
-  const { status, memberLevel } = req.body
+  const { status, memberLevel, nickname, phone, email } = req.body
 
   const updates = []
   const params = []
 
-  if (status) { updates.push('status = ?'); params.push(status) }
-  if (memberLevel) { updates.push('member_level = ?'); params.push(memberLevel) }
+  if (status !== undefined) { updates.push('status = ?'); params.push(status) }
+  if (memberLevel !== undefined) { updates.push('member_level = ?'); params.push(memberLevel) }
+  if (nickname !== undefined) { updates.push('nickname = ?'); params.push(nickname) }
+  if (phone !== undefined) { updates.push('phone = ?'); params.push(phone) }
+  if (email !== undefined) { updates.push('email = ?'); params.push(email) }
 
   if (updates.length === 0) {
     return res.status(400).json({ code: 400, message: '没有需要更新的字段' })
@@ -124,7 +127,7 @@ export function updateMemberStatus(req, res) {
 
   // Log
   db.prepare('INSERT INTO operation_logs (member_id, action, detail, ip) VALUES (?, ?, ?, ?)').run(
-    id, 'admin_update_member', `管理员更新会员: ${id}`, req.ip
+    req.member.id, 'admin_update_member', `管理员更新会员: ${id}`, req.ip
   )
 
   res.json({ code: 0, message: '更新成功' })

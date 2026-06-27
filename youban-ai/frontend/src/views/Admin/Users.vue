@@ -65,9 +65,10 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="180" fixed="right">
+          <el-table-column label="操作" width="220" fixed="right">
             <template #default="{ row }">
               <el-button text type="primary" size="small" @click="showDetail(row)">查看</el-button>
+              <el-button text type="warning" size="small" @click="openEdit(row)">编辑</el-button>
               <el-popconfirm
                 :title="row.status === 'active' ? '确定封禁该用户？' : '确定解禁该用户？'"
                 @confirm="toggleBan(row)"
@@ -152,6 +153,47 @@
         </div>
         <template #footer>
           <el-button @click="detailVisible = false">关闭</el-button>
+        </template>
+      </el-dialog>
+
+      <!-- 编辑用户弹窗 -->
+      <el-dialog v-model="editVisible" title="编辑用户" width="500px" @close="resetEditForm">
+        <el-form
+          ref="editFormRef"
+          :model="editForm"
+          :rules="editRules"
+          label-width="90px"
+          label-position="right"
+        >
+          <el-form-item label="用户名">
+            <el-input :model-value="editForm.username" disabled />
+          </el-form-item>
+          <el-form-item label="昵称" prop="nickname">
+            <el-input v-model="editForm.nickname" maxlength="20" show-word-limit />
+          </el-form-item>
+          <el-form-item label="手机号" prop="phone">
+            <el-input v-model="editForm.phone" maxlength="11" placeholder="请输入手机号" />
+          </el-form-item>
+          <el-form-item label="邮箱" prop="email">
+            <el-input v-model="editForm.email" placeholder="请输入邮箱" />
+          </el-form-item>
+          <el-form-item label="会员等级" prop="memberLevel">
+            <el-select v-model="editForm.memberLevel" style="width: 100%">
+              <el-option label="免费版" value="free" />
+              <el-option label="高级版" value="premium" />
+              <el-option label="VIP会员" value="vip" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="账号状态" prop="status">
+            <el-select v-model="editForm.status" style="width: 100%">
+              <el-option label="正常" value="active" />
+              <el-option label="已封禁" value="banned" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="editVisible = false">取消</el-button>
+          <el-button type="primary" :loading="editLoading" @click="submitEdit">保存</el-button>
         </template>
       </el-dialog>
     </div>
@@ -243,6 +285,83 @@ async function toggleBan(row) {
     }
   } catch {
     // Error handled by interceptor
+  }
+}
+
+// ========== 编辑用户 ==========
+const editVisible = ref(false)
+const editLoading = ref(false)
+const editFormRef = ref(null)
+const editForm = ref({
+  id: null,
+  username: '',
+  nickname: '',
+  phone: '',
+  email: '',
+  memberLevel: 'free',
+  status: 'active',
+})
+
+const phonePattern = /^1[3-9]\d{9}$/
+const editRules = {
+  nickname: [
+    { required: true, message: '请输入昵称', trigger: 'blur' },
+    { min: 2, max: 20, message: '昵称长度为2-20个字符', trigger: 'blur' },
+  ],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: phonePattern, message: '请输入正确的手机号', trigger: 'blur' },
+  ],
+  email: [
+    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' },
+  ],
+  memberLevel: [
+    { required: true, message: '请选择会员等级', trigger: 'change' },
+  ],
+  status: [
+    { required: true, message: '请选择账号状态', trigger: 'change' },
+  ],
+}
+
+function openEdit(row) {
+  editForm.value = {
+    id: row.id,
+    username: row.username,
+    nickname: row.nickname,
+    phone: row.phone || '',
+    email: row.email || '',
+    memberLevel: row.memberLevel,
+    status: row.status,
+  }
+  editVisible.value = true
+}
+
+function resetEditForm() {
+  editFormRef.value?.resetFields()
+}
+
+async function submitEdit() {
+  const valid = await editFormRef.value.validate().catch(() => false)
+  if (!valid) return
+
+  editLoading.value = true
+  try {
+    const res = await request.put(`/admin/members/${editForm.value.id}`, {
+      nickname: editForm.value.nickname,
+      phone: editForm.value.phone,
+      email: editForm.value.email,
+      memberLevel: editForm.value.memberLevel,
+      status: editForm.value.status,
+    })
+    if (res.code === 0) {
+      ElMessage.success('用户信息已更新')
+      editVisible.value = false
+      fetchMembers()
+    }
+  } catch {
+    // Error handled by interceptor
+  } finally {
+    editLoading.value = false
   }
 }
 </script>
