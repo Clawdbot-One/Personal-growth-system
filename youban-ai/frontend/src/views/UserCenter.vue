@@ -9,6 +9,9 @@
           <p>继续你的成长之旅，今天又进步了一点</p>
         </div>
       </div>
+      <el-button text class="logout-btn" @click="handleLogout">
+        <el-icon><SwitchButton /></el-icon> 退出登录
+      </el-button>
     </div>
 
     <!-- 统计卡片 -->
@@ -174,9 +177,11 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import { useRouter } from 'vue-router'
 import request from '@/api/request.js'
 
 const userStore = useUserStore()
+const router = useRouter()
 const recommendations = ref([])
 
 onMounted(async () => {
@@ -194,6 +199,12 @@ async function acceptRec(id) {
     recommendations.value = recommendations.value.filter(r => r.id !== id)
   } catch { /* ignore */ }
 }
+
+function handleLogout() {
+  userStore.logout()
+  ElMessage.success('已退出登录')
+  router.push('/')
+}
 </script>
 
 <style scoped>
@@ -209,6 +220,9 @@ async function acceptRec(id) {
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .welcome-content {
   display: flex;
@@ -228,6 +242,13 @@ async function acceptRec(id) {
   font-size: 14px;
   color: var(--text-muted, #909399);
   margin: 0;
+}
+.logout-btn {
+  color: #909399;
+  flex-shrink: 0;
+}
+.logout-btn:hover {
+  color: #f56c6c;
 }
 
 /* 统计卡片 */

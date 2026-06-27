@@ -34,10 +34,10 @@
           <el-icon><UserFilled /></el-icon>
           <span>个人中心</span>
         </router-link>
-        <router-link v-if="userStore.user?.memberLevel === 'admin'" to="/admin" class="nav-item admin-nav" active-class="active">
+        <a v-if="userStore.user?.memberLevel === 'admin'" class="nav-item admin-nav" @click.prevent="goAdmin">
           <el-icon><Setting /></el-icon>
           <span>后台管理</span>
-        </router-link>
+        </a>
       </nav>
       <div class="sidebar-footer">
         <div class="user-mini" @click="$router.push('/profile')">
@@ -140,6 +140,10 @@ function handleLogout() {
   userStore.logout()
   ElMessage.success('已退出登录')
   router.push('/')
+}
+
+function goAdmin() {
+  router.push('/admin')
 }
 
 function checkMobile() {
