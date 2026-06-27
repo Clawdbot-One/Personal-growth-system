@@ -23,16 +23,28 @@ import {
 const app = express()
 const PORT = process.env.PORT || 3001
 
+// 禁用 ETag，防止浏览器缓存导致 304 响应和潜在的 400 错误缓存
+app.set('etag', false)
+
 app.use(cors())
 app.use(express.json())
 
 // Request logging middleware
 app.use((req, res, next) => {
+  // 禁用浏览器缓存，防止 304 响应导致 stale 数据
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+  res.set('Pragma', 'no-cache')
+  res.set('Expires', '0')
+  
   const start = Date.now()
   res.on('finish', () => {
     const duration = Date.now() - start
-    if (res.statusCode >= 400) {
-      console.log(`[${res.statusCode}] ${req.method} ${req.originalUrl} - ${duration}ms`)
+    console.log(`[${res.statusCode}] ${req.method} ${req.originalUrl} - ${duration}ms (${req.get('user-agent')?.substring(0,50) || 'no-ua'})`)
+    if (res.statusCode >= 400 && Object.keys(req.query).length > 0) {
+      console.log(`  Query:`, req.query)
+    }
+    if (res.statusCode >= 400 && req.body && Object.keys(req.body).length > 0) {
+      console.log(`  Body:`, req.body)
     }
   })
   next()

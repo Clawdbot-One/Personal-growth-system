@@ -313,6 +313,7 @@ async function fetchDashboard() {
       stats.value[1].value = d.avgQualityScore
       stats.value[2].value = d.learningZoneRatio + '%'
       stats.value[3].value = d.focusAnalysis?.bestTimeSlot || '--'
+      if (d.zoneData) zoneData.value = d.zoneData
     }
   } catch { /* ignore */ }
 }
@@ -342,7 +343,7 @@ async function fetchQuality() {
 
 async function refreshZone(area) {
   try {
-    const res = await request.get(`/dp/zone?area=${encodeURIComponent(area || '战略思维')}`)
+    const res = await request.get('/dp/zone', { params: { area: area || '战略思维' } })
     if (res.code === 0) zoneData.value = res.data
   } catch { /* ignore */ }
 }

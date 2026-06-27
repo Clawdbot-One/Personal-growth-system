@@ -206,8 +206,10 @@ export function getQualityScores(req, res) {
 export function getZoneAssessment(req, res) {
   const memberId = req.member.id
   const { area } = req.query
+  console.log(`[getZoneAssessment] called, area=${area}, query=`, req.query)
 
   if (!area) {
+    console.log(`[getZoneAssessment] returning 400: no area`)
     return res.status(400).json({ code: 400, message: '请指定评估领域' })
   }
 
@@ -455,6 +457,49 @@ export function getDashboard(req, res) {
       learningZoneRatio: learningRatio,
       focusAnalysis,
       weeklySessions: weeklySessions.map(s => ({ date: s.date, count: s.count })),
+      zoneData: generateZoneData(memberId),
     },
   })
+}
+
+function generateZoneData(memberId) {
+  const recentSessions = db.prepare(`
+    SELECT * FROM dp_practice_sessions
+    WHERE member_id = ? AND created_at >= date('now', '-7 days')
+    ORDER BY created_at DESC LIMIT 10
+  `).all(memberId)
+
+  const totalSessions = recentSessions.length
+  const learningSessions = recentSessions.filter(s => s.difficulty_level === 'learning').length
+  const comfortSessions = recentSessions.filter(s => s.difficulty_level === 'comfort').length
+  const panicSessions = recentSessions.filter(s => s.difficulty_level === 'panic').length
+
+  const successRate = totalSessions > 0
+    ? (learningSessions * 0.8 + comfortSessions * 0.95 + panicSessions * 0.3) / totalSessions
+    : 0.7
+
+  const avgDuration = totalSessions > 0
+    ? recentSessions.reduce((s, r) => s + r.duration_minutes, 0) / totalSessions
+    : 0
+
+  const lastAssessment = db.prepare(`
+    SELECT * FROM dp_zone_assessments WHERE member_id = ? ORDER BY created_at DESC LIMIT 1
+  `).get(memberId)
+
+  const zoneResult = assessZone(memberId, '战略思维', {
+    successRate,
+    avgDuration,
+    difficulty: lastAssessment?.difficulty_level || 1.0,
+  })
+
+  return {
+    ...zoneResult,
+    recentStats: {
+      totalSessions,
+      comfortSessions,
+      learningSessions,
+      panicSessions,
+      learningZoneRatio: totalSessions > 0 ? Math.round((learningSessions / totalSessions) * 100) : 0,
+    },
+  }
 }
