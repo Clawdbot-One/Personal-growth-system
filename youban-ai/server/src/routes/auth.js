@@ -10,6 +10,14 @@ export function register(req, res) {
     return res.status(400).json({ code: 400, message: '用户名、密码和昵称为必填项' })
   }
 
+  if (!phone) {
+    return res.status(400).json({ code: 400, message: '手机号为必填项' })
+  }
+
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    return res.status(400).json({ code: 400, message: '手机号格式不正确' })
+  }
+
   if (username.length < 3 || username.length > 20) {
     return res.status(400).json({ code: 400, message: '用户名长度应为3-20个字符' })
   }
@@ -24,6 +32,12 @@ export function register(req, res) {
     return res.status(409).json({ code: 409, message: '用户名已存在' })
   }
 
+  // Check if phone exists
+  const phoneExist = db.prepare('SELECT id FROM members WHERE phone = ?').get(phone)
+  if (phoneExist) {
+    return res.status(409).json({ code: 409, message: '手机号已被注册' })
+  }
+
   const passwordHash = bcrypt.hashSync(password, 10)
 
   const insertMember = db.prepare(`
@@ -31,7 +45,7 @@ export function register(req, res) {
     VALUES (?, ?, ?, ?, ?)
   `)
 
-  const result = insertMember.run(username, passwordHash, nickname, phone || '', email || '')
+  const result = insertMember.run(username, passwordHash, nickname, phone, email || '')
 
   // Create associated learning data
   db.prepare('INSERT INTO member_learning_data (member_id) VALUES (?)').run(result.lastInsertRowid)
@@ -58,6 +72,7 @@ export function register(req, res) {
         nickname: member.nickname,
         phone: member.phone,
         avatar: member.avatar,
+        email: member.email,
         memberLevel: member.member_level,
         joinDate: member.created_at?.split(' ')[0],
       },
@@ -113,6 +128,7 @@ export function login(req, res) {
         nickname: member.nickname,
         phone: member.phone,
         avatar: member.avatar,
+        email: member.email,
         memberLevel: member.member_level,
         joinDate: member.created_at?.split(' ')[0],
         strengths: {

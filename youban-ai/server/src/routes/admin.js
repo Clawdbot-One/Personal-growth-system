@@ -1,4 +1,5 @@
 import db from '../db/init.js'
+import bcrypt from 'bcryptjs'
 
 export function getAllMembers(req, res) {
   const { page = 1, pageSize = 20, keyword, status, level } = req.query
@@ -146,4 +147,116 @@ export function getMemberStats(req, res) {
       totalAssessments,
     },
   })
+}
+
+// ========== 管理员账号管理 ==========
+
+export function getAdminAccounts(req, res) {
+  const admins = db.prepare(`
+    SELECT m.*, ld.total_study_hours, ld.consecutive_days, ld.completed_tasks
+    FROM members m
+    LEFT JOIN member_learning_data ld ON ld.member_id = m.id
+    WHERE m.member_level = 'admin'
+    ORDER BY m.created_at ASC
+  `).all()
+
+  const list = admins.map(m => ({
+    id: m.id,
+    username: m.username,
+    nickname: m.nickname,
+    phone: m.phone,
+    email: m.email,
+    status: m.status,
+    createdAt: m.created_at,
+    lastLoginAt: m.last_login_at,
+    stats: {
+      totalHours: m.total_study_hours || 0,
+      consecutiveDays: m.consecutive_days || 0,
+      completedTasks: m.completed_tasks || 0,
+    },
+  }))
+
+  res.json({ code: 0, data: list })
+}
+
+export function createAdminAccount(req, res) {
+  const { username, password, nickname, phone, email } = req.body
+
+  if (!username || !password || !nickname || !phone) {
+    return res.status(400).json({ code: 400, message: '用户名、密码、昵称和手机号为必填项' })
+  }
+
+  if (username.length < 3 || username.length > 20) {
+    return res.status(400).json({ code: 400, message: '用户名长度应为3-20个字符' })
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ code: 400, message: '密码长度不能少于6位' })
+  }
+
+  const existing = db.prepare('SELECT id FROM members WHERE username = ?').get(username)
+  if (existing) {
+    return res.status(409).json({ code: 409, message: '用户名已存在' })
+  }
+
+  const hash = bcrypt.hashSync(password, 10)
+  const result = db.prepare(`
+    INSERT INTO members (username, password_hash, nickname, phone, email, member_level)
+    VALUES (?, ?, ?, ?, ?, 'admin')
+  `).run(username, hash, nickname, phone, email || '')
+
+  db.prepare('INSERT INTO member_learning_data (member_id) VALUES (?)').run(result.lastInsertRowid)
+  db.prepare('INSERT INTO member_strength_profile (member_id) VALUES (?)').run(result.lastInsertRowid)
+
+  db.prepare('INSERT INTO operation_logs (member_id, action, detail, ip) VALUES (?, ?, ?, ?)').run(
+    req.member.id, 'create_admin', `创建管理员: ${username}`, req.ip
+  )
+
+  res.json({ code: 0, data: { id: result.lastInsertRowid }, message: '管理员账号创建成功' })
+}
+
+export function deleteAdminAccount(req, res) {
+  const { id } = req.params
+
+  const admin = db.prepare("SELECT * FROM members WHERE id = ? AND member_level = 'admin'").get(id)
+  if (!admin) {
+    return res.status(404).json({ code: 404, message: '管理员账号不存在' })
+  }
+
+  // Prevent deleting the last admin
+  const adminCount = db.prepare("SELECT COUNT(*) as count FROM members WHERE member_level = 'admin'").get().count
+  if (adminCount <= 1) {
+    return res.status(400).json({ code: 400, message: '不能删除最后一个管理员账号' })
+  }
+
+  db.prepare('DELETE FROM members WHERE id = ?').run(id)
+
+  db.prepare('INSERT INTO operation_logs (member_id, action, detail, ip) VALUES (?, ?, ?, ?)').run(
+    req.member.id, 'delete_admin', `删除管理员: ${admin.username}`, req.ip
+  )
+
+  res.json({ code: 0, message: '管理员账号已删除' })
+}
+
+export function resetAdminPassword(req, res) {
+  const { id } = req.params
+  const { password } = req.body
+
+  if (!password || password.length < 6) {
+    return res.status(400).json({ code: 400, message: '新密码长度不能少于6位' })
+  }
+
+  const admin = db.prepare("SELECT * FROM members WHERE id = ? AND member_level = 'admin'").get(id)
+  if (!admin) {
+    return res.status(404).json({ code: 404, message: '管理员账号不存在' })
+  }
+
+  const hash = bcrypt.hashSync(password, 10)
+  db.prepare("UPDATE members SET password_hash = ?, updated_at = datetime('now', 'localtime') WHERE id = ?").run(hash, id)
+
+  db.prepare('INSERT INTO operation_logs (member_id, action, detail, ip) VALUES (?, ?, ?, ?)').run(
+    req.member.id, 'reset_admin_password', `重置管理员密码: ${admin.username}`, req.ip
+  )
+
+  res.json({ code: 0, message: '密码重置成功' })
 }

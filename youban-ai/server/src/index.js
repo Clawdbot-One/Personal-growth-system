@@ -2,7 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import './db/init.js'
 import { register, login, getProfile, updateProfile, updateLearningData } from './routes/auth.js'
-import { getAllMembers, getMemberDetail, updateMemberStatus, getMemberStats } from './routes/admin.js'
+import { getAllMembers, getMemberDetail, updateMemberStatus, getMemberStats, getAdminAccounts, createAdminAccount, deleteAdminAccount, resetAdminPassword } from './routes/admin.js'
 import { getRecommendations, acceptRecommendation, rejectRecommendation } from './services/recommendation.js'
 import {
   getLearningData, saveAssessment, getAssessments,
@@ -44,6 +44,12 @@ app.get('/api/admin/members', authMiddleware, adminMiddleware, getAllMembers)
 app.get('/api/admin/members/stats', authMiddleware, adminMiddleware, getMemberStats)
 app.get('/api/admin/members/:id', authMiddleware, adminMiddleware, getMemberDetail)
 app.put('/api/admin/members/:id', authMiddleware, adminMiddleware, updateMemberStatus)
+
+// ========== Admin Account Management ==========
+app.get('/api/admin/accounts', authMiddleware, adminMiddleware, getAdminAccounts)
+app.post('/api/admin/accounts', authMiddleware, adminMiddleware, createAdminAccount)
+app.delete('/api/admin/accounts/:id', authMiddleware, adminMiddleware, deleteAdminAccount)
+app.put('/api/admin/accounts/:id/password', authMiddleware, adminMiddleware, resetAdminPassword)
 
 app.listen(PORT, () => {
   console.log(`优伴AI 会员服务已启动: http://localhost:${PORT}`)

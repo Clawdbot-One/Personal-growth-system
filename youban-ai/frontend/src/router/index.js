@@ -118,6 +118,12 @@ const routes = [
     meta: { title: '用户管理', admin: true },
   },
   {
+    path: '/admin/accounts',
+    name: 'AdminAccounts',
+    component: () => import('@/views/Admin/Accounts.vue'),
+    meta: { title: '管理员账号管理', admin: true },
+  },
+  {
     path: '/admin/content',
     name: 'AdminContent',
     component: () => import('@/views/Admin/Content.vue'),

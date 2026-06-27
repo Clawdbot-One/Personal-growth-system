@@ -32,6 +32,12 @@
             <el-form-item label="昵称" prop="nickname">
               <el-input v-model="registerForm.nickname" placeholder="如何称呼你？" prefix-icon="EditPen" />
             </el-form-item>
+            <el-form-item label="手机号" prop="phone">
+              <el-input v-model="registerForm.phone" placeholder="请输入11位手机号" prefix-icon="Phone" />
+            </el-form-item>
+            <el-form-item label="邮箱" prop="email">
+              <el-input v-model="registerForm.email" placeholder="选填，用于找回密码" prefix-icon="Message" />
+            </el-form-item>
             <el-form-item label="密码" prop="password">
               <el-input v-model="registerForm.password" type="password" placeholder="至少6位密码" prefix-icon="Lock" show-password />
             </el-form-item>
@@ -66,13 +72,20 @@ const loginRules = {
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 }
 
-const registerForm = reactive({ username: '', nickname: '', password: '', confirmPassword: '' })
+const registerForm = reactive({ username: '', nickname: '', phone: '', email: '', password: '', confirmPassword: '' })
 const registerRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 3, max: 20, message: '用户名长度应为3-20个字符', trigger: 'blur' },
   ],
   nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' },
+  ],
+  email: [
+    { type: 'email', message: '邮箱格式不正确', trigger: 'blur' },
+  ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码长度不能少于6位', trigger: 'blur' },
@@ -124,6 +137,8 @@ async function handleRegister() {
     const res = await request.post('/auth/register', {
       username: registerForm.username,
       nickname: registerForm.nickname,
+      phone: registerForm.phone,
+      email: registerForm.email || undefined,
       password: registerForm.password,
     })
     if (res.code === 0) {

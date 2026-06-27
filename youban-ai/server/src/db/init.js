@@ -29,7 +29,7 @@ db.exec(`
     phone TEXT DEFAULT '',
     avatar TEXT DEFAULT '',
     email TEXT DEFAULT '',
-    member_level TEXT DEFAULT 'free' CHECK(member_level IN ('free', 'premium', 'vip')),
+    member_level TEXT DEFAULT 'free' CHECK(member_level IN ('free', 'premium', 'vip', 'admin')),
     status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive', 'banned')),
     created_at TEXT DEFAULT (datetime('now', 'localtime')),
     updated_at TEXT DEFAULT (datetime('now', 'localtime')),
