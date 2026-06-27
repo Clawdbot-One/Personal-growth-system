@@ -71,11 +71,19 @@
           <el-button circle @click="userStore.toggleTheme()">
             <el-icon><Moon v-if="!userStore.isDark" /><Sunny v-else /></el-icon>
           </el-button>
-          <el-badge :value="3" class="notice-badge">
-            <el-button circle>
-              <el-icon><Bell /></el-icon>
-            </el-button>
-          </el-badge>
+          <el-dropdown trigger="click">
+            <el-avatar :size="34" icon="UserFilled" class="cursor-pointer" />
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="$router.push('/profile')">
+                  <el-icon><UserFilled /></el-icon> 个人中心
+                </el-dropdown-item>
+                <el-dropdown-item @click="handleLogout" divided>
+                  <el-icon><SwitchButton /></el-icon> 退出登录
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
       </header>
 
@@ -113,14 +121,22 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
 const isMobile = ref(false)
 
 const pageTitle = computed(() => route.meta.title || '优伴AI')
+
+function handleLogout() {
+  userStore.logout()
+  ElMessage.success('已退出登录')
+  router.push('/')
+}
 
 function checkMobile() {
   isMobile.value = window.innerWidth < 769

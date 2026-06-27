@@ -37,6 +37,15 @@
               进入我的成长
             </el-button>
           </router-link>
+          <el-button
+            v-if="userStore.isLoggedIn"
+            text
+            size="large"
+            class="logout-btn"
+            @click="handleLogout"
+          >
+            退出登录
+          </el-button>
         </div>
       </div>
     </header>
@@ -263,6 +272,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { Phone, Lock } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -290,6 +300,11 @@ function handleLogin() {
   userStore.login(loginForm.value.phone, loginForm.value.password)
   showLoginDialog.value = false
   loginForm.value = { phone: '', password: '' }
+}
+
+function handleLogout() {
+  userStore.logout()
+  ElMessage.success('已退出登录')
 }
 
 const features = [
