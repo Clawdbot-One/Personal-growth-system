@@ -30,6 +30,10 @@
           <el-icon><Collection /></el-icon>
           <span>实践库</span>
         </router-link>
+        <router-link to="/deliberate-practice" class="nav-item" active-class="active">
+          <el-icon><Aim /></el-icon>
+          <span>刻意练习</span>
+        </router-link>
         <router-link to="/profile" class="nav-item" active-class="active">
           <el-icon><UserFilled /></el-icon>
           <span>个人中心</span>

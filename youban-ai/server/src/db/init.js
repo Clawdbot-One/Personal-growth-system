@@ -162,6 +162,114 @@ db.exec(`
     ip TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now', 'localtime'))
   );
+
+  -- ========== 刻意练习模块 ==========
+
+  -- 训练计划表
+  CREATE TABLE IF NOT EXISTS dp_training_plans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    area TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    sub_goals TEXT DEFAULT '[]',
+    current_level TEXT DEFAULT 'novice',
+    target_level TEXT DEFAULT 'competent',
+    status TEXT DEFAULT 'active' CHECK(status IN ('active', 'paused', 'completed')),
+    created_at TEXT DEFAULT (datetime('now', 'localtime')),
+    updated_at TEXT DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+  );
+
+  -- 刻意练习会话记录
+  CREATE TABLE IF NOT EXISTS dp_practice_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_id INTEGER NOT NULL,
+    plan_id INTEGER,
+    goal TEXT NOT NULL,
+    content TEXT DEFAULT '',
+    duration_minutes INTEGER DEFAULT 0,
+    effective_duration_minutes INTEGER DEFAULT 0,
+    focus_score INTEGER DEFAULT 0,
+    difficulty_level TEXT DEFAULT 'learning' CHECK(difficulty_level IN ('comfort', 'learning', 'panic')),
+    reflection TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE,
+    FOREIGN KEY (plan_id) REFERENCES dp_training_plans(id) ON DELETE SET NULL
+  );
+
+  -- 练习质量评分表
+  CREATE TABLE IF NOT EXISTS dp_practice_quality_scores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL UNIQUE,
+    goal_clarity_score INTEGER DEFAULT 0,
+    comfort_zone_break_score INTEGER DEFAULT 0,
+    feedback_quality_score INTEGER DEFAULT 0,
+    focus_intensity_score INTEGER DEFAULT 0,
+    overall_score INTEGER DEFAULT 0,
+    assessment TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (session_id) REFERENCES dp_practice_sessions(id) ON DELETE CASCADE
+  );
+
+  -- 三区评估记录
+  CREATE TABLE IF NOT EXISTS dp_zone_assessments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_id INTEGER NOT NULL,
+    area TEXT NOT NULL,
+    comfort_zone_score REAL DEFAULT 0,
+    learning_zone_score REAL DEFAULT 0,
+    panic_zone_score REAL DEFAULT 0,
+    current_zone TEXT DEFAULT 'comfort',
+    difficulty_level REAL DEFAULT 1.0,
+    created_at TEXT DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+  );
+
+  -- 反馈记录表（四层反馈模型）
+  CREATE TABLE IF NOT EXISTS dp_feedback_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    member_id INTEGER NOT NULL,
+    result_feedback TEXT DEFAULT '',
+    process_feedback TEXT DEFAULT '',
+    strategy_feedback TEXT DEFAULT '',
+    meta_feedback TEXT DEFAULT '',
+    improvement_suggestions TEXT DEFAULT '[]',
+    is_adopted INTEGER DEFAULT 0,
+    adopted_at TEXT,
+    created_at TEXT DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (session_id) REFERENCES dp_practice_sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+  );
+
+  -- 专注力训练会话
+  CREATE TABLE IF NOT EXISTS dp_focus_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_id INTEGER NOT NULL,
+    duration_minutes INTEGER NOT NULL,
+    focus_score INTEGER DEFAULT 0,
+    distraction_count INTEGER DEFAULT 0,
+    mode TEXT DEFAULT 'normal' CHECK(mode IN ('normal', 'deep', 'strict')),
+    time_of_day TEXT,
+    created_at TEXT DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+  );
+
+  -- 心理表征测评记录
+  CREATE TABLE IF NOT EXISTS dp_mental_representation_assessments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_id INTEGER NOT NULL,
+    area TEXT NOT NULL,
+    stage TEXT DEFAULT 'novice',
+    pattern_recognition_score INTEGER DEFAULT 0,
+    situational_judgment_score INTEGER DEFAULT 0,
+    analogical_reasoning_score INTEGER DEFAULT 0,
+    overall_maturity_score INTEGER DEFAULT 0,
+    assessment_data TEXT DEFAULT '{}',
+    created_at TEXT DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+  );
 `)
 
 // Create indexes
@@ -174,6 +282,14 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_chat_sessions_member ON chat_sessions(member_id);
   CREATE INDEX IF NOT EXISTS idx_recommendations_member ON recommendations(member_id);
   CREATE INDEX IF NOT EXISTS idx_operation_logs_member ON operation_logs(member_id);
+  CREATE INDEX IF NOT EXISTS idx_dp_sessions_member ON dp_practice_sessions(member_id);
+  CREATE INDEX IF NOT EXISTS idx_dp_sessions_plan ON dp_practice_sessions(plan_id);
+  CREATE INDEX IF NOT EXISTS idx_dp_zone_member ON dp_zone_assessments(member_id);
+  CREATE INDEX IF NOT EXISTS idx_dp_feedback_session ON dp_feedback_records(session_id);
+  CREATE INDEX IF NOT EXISTS idx_dp_feedback_member ON dp_feedback_records(member_id);
+  CREATE INDEX IF NOT EXISTS idx_dp_focus_member ON dp_focus_sessions(member_id);
+  CREATE INDEX IF NOT EXISTS idx_dp_mental_member ON dp_mental_representation_assessments(member_id);
+  CREATE INDEX IF NOT EXISTS idx_dp_plans_member ON dp_training_plans(member_id);
 `)
 
 export default db

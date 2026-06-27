@@ -92,6 +92,31 @@ const routes = [
     component: () => import('@/views/Practice/Detail.vue'),
     meta: { title: '实践项目详情' },
   },
+  // 刻意练习模块
+  {
+    path: '/deliberate-practice',
+    name: 'DeliberatePractice',
+    component: () => import('@/views/Practice/DeliberatePractice.vue'),
+    meta: { title: '刻意练习' },
+  },
+  {
+    path: '/deliberate-practice/quality',
+    name: 'PracticeQuality',
+    component: () => import('@/views/Practice/PracticeQuality.vue'),
+    meta: { title: '练习质量分析' },
+  },
+  {
+    path: '/deliberate-practice/zone',
+    name: 'ZoneAssessment',
+    component: () => import('@/views/Practice/ZoneAssessment.vue'),
+    meta: { title: '三区难度分析' },
+  },
+  {
+    path: '/deliberate-practice/deep',
+    name: 'DeepPractice',
+    component: () => import('@/views/Practice/DeepPractice.vue'),
+    meta: { title: '深度练习模式' },
+  },
   // 个人中心
   {
     path: '/profile',

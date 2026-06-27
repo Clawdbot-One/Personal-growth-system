@@ -148,6 +148,15 @@
                 <span class="ql-desc">优势落地</span>
               </div>
             </router-link>
+            <router-link to="/deliberate-practice" class="quick-link">
+              <div class="ql-icon" style="background: rgba(14,165,233,0.1);">
+                <el-icon :size="20" color="#0EA5E9"><Aim /></el-icon>
+              </div>
+              <div class="ql-text">
+                <span class="ql-title">刻意练习</span>
+                <span class="ql-desc">科学训练</span>
+              </div>
+            </router-link>
             <router-link to="/profile" class="quick-link">
               <div class="ql-icon" style="background: rgba(236,72,153,0.1);">
                 <el-icon :size="20" color="#EC4899"><UserFilled /></el-icon>
