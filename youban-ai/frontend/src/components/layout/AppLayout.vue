@@ -34,13 +34,17 @@
           <el-icon><UserFilled /></el-icon>
           <span>个人中心</span>
         </router-link>
+        <router-link v-if="userStore.user?.memberLevel === 'admin'" to="/admin" class="nav-item admin-nav" active-class="active">
+          <el-icon><Setting /></el-icon>
+          <span>后台管理</span>
+        </router-link>
       </nav>
       <div class="sidebar-footer">
         <div class="user-mini" @click="$router.push('/profile')">
           <el-avatar :size="36" icon="UserFilled" />
           <div class="user-info">
             <span class="user-name">{{ userStore.user?.nickname || '用户' }}</span>
-            <span class="user-level">免费版</span>
+            <span class="user-level">{{ userStore.user?.memberLevel === 'admin' ? '系统管理员' : userStore.user?.memberLevel === 'vip' ? 'VIP会员' : userStore.user?.memberLevel === 'premium' ? '高级版' : '免费版' }}</span>
           </div>
         </div>
       </div>

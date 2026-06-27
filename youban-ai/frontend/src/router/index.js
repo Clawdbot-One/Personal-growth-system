@@ -177,6 +177,18 @@ router.beforeEach((to, from, next) => {
     return next('/auth')
   }
 
+  // Check admin permission
+  if (requiresAdmin && token) {
+    try {
+      const savedUser = JSON.parse(localStorage.getItem('youban_user') || '{}')
+      if (savedUser.memberLevel !== 'admin') {
+        return next('/home')
+      }
+    } catch {
+      return next('/home')
+    }
+  }
+
   // Logged-in users: redirect guest pages to user center
   if (token && isAuthPage) {
     return next('/home')
