@@ -55,17 +55,24 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const activeTab = ref('login')
 const loading = ref(false)
 const loginFormRef = ref(null)
 const registerFormRef = ref(null)
+
+onMounted(() => {
+  if (route.query.tab === 'register') {
+    activeTab.value = 'register'
+  }
+})
 
 const loginForm = reactive({ username: '', password: '' })
 const loginRules = {

@@ -28,7 +28,7 @@
             size="large"
             round
             class="signup-btn"
-            @click="showLoginDialog = true"
+            @click="router.push('/auth?tab=register')"
           >
             免费注册
           </el-button>
