@@ -206,12 +206,9 @@ export function getQualityScores(req, res) {
 export function getZoneAssessment(req, res) {
   const memberId = req.member.id
   const { area } = req.query
-  console.log(`[getZoneAssessment] called, area=${area}, query=`, req.query)
-
-  if (!area) {
-    console.log(`[getZoneAssessment] returning 400: no area`)
-    return res.status(400).json({ code: 400, message: '请指定评估领域' })
-  }
+  // 默认使用"战略思维"作为评估领域，避免 400 错误
+  const effectiveArea = area || '战略思维'
+  console.log(`[getZoneAssessment] called, area=${area}, effectiveArea=${effectiveArea}`)
 
   // Calculate recent performance
   const recentSessions = db.prepare(`
@@ -235,9 +232,9 @@ export function getZoneAssessment(req, res) {
 
   const lastAssessment = db.prepare(`
     SELECT * FROM dp_zone_assessments WHERE member_id = ? AND area = ? ORDER BY created_at DESC LIMIT 1
-  `).get(memberId, area)
+  `).get(memberId, effectiveArea)
 
-  const zoneResult = assessZone(memberId, area, {
+  const zoneResult = assessZone(memberId, effectiveArea, {
     successRate,
     avgDuration,
     difficulty: lastAssessment?.difficulty_level || 1.0,
@@ -247,7 +244,7 @@ export function getZoneAssessment(req, res) {
   db.prepare(`
     INSERT INTO dp_zone_assessments (member_id, area, comfort_zone_score, learning_zone_score, panic_zone_score, current_zone, difficulty_level)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(memberId, area, zoneResult.comfortZoneScore, zoneResult.learningZoneScore, zoneResult.panicZoneScore, zoneResult.currentZone, zoneResult.difficultyLevel)
+  `).run(memberId, effectiveArea, zoneResult.comfortZoneScore, zoneResult.learningZoneScore, zoneResult.panicZoneScore, zoneResult.currentZone, zoneResult.difficultyLevel)
 
   res.json({
     code: 0,
