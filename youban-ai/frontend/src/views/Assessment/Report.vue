@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <div class="report-page" v-if="report">
+    <div class="report-page" v-if="report" ref="reportContainer">
       <!-- 报告头部 -->
       <div class="report-header">
         <div class="report-header-top">
@@ -268,10 +268,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAssessmentStore } from '@/stores/assessment'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElLoading } from 'element-plus'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 import AppLayout from '@/components/layout/AppLayout.vue'
 
 const route = useRoute()
@@ -279,6 +281,7 @@ const router = useRouter()
 const store = useAssessmentStore()
 
 const report = ref(null)
+const reportContainer = ref(null)
 
 onMounted(() => {
   const id = Number(route.params.id)
@@ -381,12 +384,104 @@ function formatDate(iso) {
   })
 }
 
-function handleExport() {
-  ElMessage.success('报告导出功能已触发（演示）')
+async function handleExport() {
+  if (!reportContainer.value) {
+    ElMessage.warning('报告内容未加载')
+    return
+  }
+
+  const loading = ElLoading.service({
+    lock: true,
+    text: '正在生成PDF报告...',
+    background: 'rgba(0, 0, 0, 0.7)',
+  })
+
+  try {
+    // 隐藏导出按钮和其他交互元素
+    const exportButtons = reportContainer.value.querySelectorAll('.report-actions, .report-footer, .back-btn')
+    exportButtons.forEach(el => el.style.display = 'none')
+
+    await nextTick()
+
+    const canvas = await html2canvas(reportContainer.value, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    })
+
+    // 恢复按钮
+    exportButtons.forEach(el => el.style.display = '')
+
+    const imgWidth = 210 // A4 width in mm
+    const pageHeight = 297 // A4 height in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width
+    let heightLeft = imgHeight
+
+    const pdf = new jsPDF('p', 'mm', 'a4')
+    let position = 0
+
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight)
+    heightLeft -= pageHeight
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight
+      pdf.addPage()
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
+    }
+
+    const typeName = report.value?.type === 'quick' ? '快速精简版' : report.value?.type === 'full' ? '专业完整版' : '深度访谈版'
+    pdf.save(`优伴AI_优势测评报告_${typeName}_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.pdf`)
+
+    ElMessage.success('报告导出成功！')
+  } catch (err) {
+    // 恢复按钮
+    const exportButtons = reportContainer.value.querySelectorAll('.report-actions, .report-footer, .back-btn')
+    exportButtons.forEach(el => el.style.display = '')
+    console.error('导出PDF失败:', err)
+    ElMessage.error('导出失败，请重试')
+  } finally {
+    loading.close()
+  }
 }
 
 function handleShare() {
-  ElMessage.success('分享链接已复制到剪贴板（演示）')
+  const url = window.location.href
+  const title = '优伴AI - 优势测评报告'
+
+  if (navigator.share) {
+    navigator.share({ title, url }).catch(() => {
+      copyToClipboard(url)
+    })
+  } else {
+    copyToClipboard(url)
+  }
+}
+
+function copyToClipboard(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      ElMessage.success('分享链接已复制到剪贴板')
+    }).catch(() => {
+      ElMessage.info(`分享链接：${text}`)
+    })
+  } else {
+    // 回退方案
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    try {
+      document.execCommand('copy')
+      ElMessage.success('分享链接已复制到剪贴板')
+    } catch {
+      ElMessage.info(`分享链接：${text}`)
+    }
+    document.body.removeChild(textarea)
+  }
 }
 </script>
 
@@ -785,6 +880,35 @@ function handleShare() {
   }
   .career-match-value {
     font-size: 18px;
+  }
+}
+
+/* 打印/导出时隐藏交互元素 */
+@media print {
+  .report-actions,
+  .report-footer,
+  .back-btn {
+    display: none !important;
+  }
+  .report-page {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .report-header-top {
+    gap: 8px;
+  }
+  .report-header {
+    margin-bottom: 20px;
+  }
+  .report-section {
+    margin-bottom: 24px;
+    page-break-inside: avoid;
+  }
+  .strength-card,
+  .blind-card,
+  .career-item {
+    page-break-inside: avoid;
   }
 }
 </style>
