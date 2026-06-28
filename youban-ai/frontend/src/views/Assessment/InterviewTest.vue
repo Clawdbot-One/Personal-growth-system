@@ -252,13 +252,16 @@ function handleRestart() {
   askQuestion(0)
 }
 
-function generateAndViewReport() {
+async function generateAndViewReport() {
   isGenerating.value = true
-  setTimeout(() => {
-    const report = store.generateReport('interview')
-    isGenerating.value = false
+  try {
+    const report = await store.generateReport('interview')
     router.push(`/assessment/report/${report.id}`)
-  }, 1200)
+  } catch {
+    // 即使保存失败也跳转查看报告
+  } finally {
+    isGenerating.value = false
+  }
 }
 </script>
 

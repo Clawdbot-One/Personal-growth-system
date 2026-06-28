@@ -78,6 +78,37 @@
           </div>
         </el-card>
 
+        <!-- 测评记录 -->
+        <el-card class="section-card" shadow="never" v-if="assessmentStore.reports.length > 0">
+          <template #header>
+            <div class="card-header">
+              <span class="card-title">测评记录</span>
+              <router-link to="/assessment" class="card-link">查看全部 →</router-link>
+            </div>
+          </template>
+          <div class="assessment-mini-list">
+            <div
+              v-for="r in assessmentStore.reports.slice(0, 3)"
+              :key="r.id"
+              class="assessment-mini-item"
+              @click="$router.push(`/assessment/report/${r.id}`)"
+            >
+              <div class="am-left">
+                <span class="am-type" :style="{ background: getTypeColor(r.type) }">
+                  {{ getTypeLabel(r.type) }}
+                </span>
+                <span class="am-date">{{ formatDate(r.createdAt) }}</span>
+              </div>
+              <div class="am-scores">
+                <span class="am-score">天赋 {{ r.scores?.talent || 0 }}</span>
+                <span class="am-score">技能 {{ r.scores?.skill || 0 }}</span>
+                <span class="am-score">性格 {{ r.scores?.character || 0 }}</span>
+                <span class="am-score">价值观 {{ r.scores?.value || 0 }}</span>
+              </div>
+            </div>
+          </div>
+        </el-card>
+
         <!-- 今日推荐 -->
         <el-card class="section-card" shadow="never">
           <template #header>
@@ -186,15 +217,18 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import { useAssessmentStore } from '@/stores/assessment'
 import { useRouter } from 'vue-router'
 import request from '@/api/request.js'
 
 const userStore = useUserStore()
+const assessmentStore = useAssessmentStore()
 const router = useRouter()
 const recommendations = ref([])
 
 onMounted(async () => {
   await userStore.fetchProfile()
+  assessmentStore.fetchReports()
   try {
     const res = await request.get('/recommendations')
     if (res.code === 0) recommendations.value = res.data.slice(0, 4)
@@ -213,6 +247,24 @@ function handleLogout() {
   userStore.logout()
   ElMessage.success('已退出登录')
   router.push('/')
+}
+
+function getTypeLabel(type) {
+  const map = { quick: '快速版', full: '完整版', interview: '访谈版' }
+  return map[type] || type
+}
+
+function getTypeColor(type) {
+  const map = { quick: '#2563EB', full: '#7C3AED', interview: '#F97316' }
+  return map[type] || '#2563EB'
+}
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 }
 </script>
 
@@ -439,6 +491,54 @@ function handleLogout() {
 .ql-desc {
   font-size: 12px;
   color: var(--text-muted, #909399);
+}
+
+/* 测评记录迷你列表 */
+.assessment-mini-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.assessment-mini-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--bg-primary, #f5f7fa);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.assessment-mini-item:hover {
+  background: rgba(37, 99, 235, 0.06);
+}
+.am-left {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.am-type {
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+.am-date {
+  font-size: 12px;
+  color: var(--text-muted, #909399);
+}
+.am-scores {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.am-score {
+  font-size: 12px;
+  color: var(--text-secondary, #606266);
+  background: rgba(255, 255, 255, 0.6);
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
 @media (max-width: 768px) {

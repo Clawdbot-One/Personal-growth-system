@@ -322,17 +322,20 @@ function confirmExit() {
   router.back()
 }
 
-function handleSubmit() {
+async function handleSubmit() {
   if (!selectedAnswer.value) return
   store.saveAnswer(currentQuestion.value.id, selectedAnswer.value)
   isSubmitting.value = true
   if (timerInterval) clearInterval(timerInterval)
 
-  setTimeout(() => {
-    const report = store.generateReport('full')
-    isSubmitting.value = false
+  try {
+    const report = await store.generateReport('full')
     router.push(`/assessment/report/${report.id}`)
-  }, 1000)
+  } catch {
+    // 即使保存失败也跳转查看报告
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 

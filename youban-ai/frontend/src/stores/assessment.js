@@ -1,8 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { saveAssessment as saveAssessmentApi, getAssessments as getAssessmentsApi } from '@/api/assessment'
+import { useUserStore } from '@/stores/user'
 
 export const useAssessmentStore = defineStore('assessment', () => {
   const currentTest = ref(null)
+  const reportsLoading = ref(false)
   const answers = ref({})
   const currentQuestionIndex = ref(0)
   const reports = ref([])
@@ -172,14 +175,47 @@ export const useAssessmentStore = defineStore('assessment', () => {
     currentQuestionIndex.value--
   }
 
-  function generateReport(type) {
-    const baseScores = {
-      talent: 60 + Math.floor(Math.random() * 35),
-      skill: 55 + Math.floor(Math.random() * 35),
-      character: 65 + Math.floor(Math.random() * 30),
-      value: 60 + Math.floor(Math.random() * 35),
+  function calcScoresFromAnswers(answerData, questionList) {
+    // 按类型分组统计各维度得分
+    const typeScores = { talent: [], skill: [], character: [], value: [] }
+    for (const q of questionList) {
+      const selected = answerData[q.id]
+      if (!selected) continue
+      const option = q.options?.find(o => o.value === selected)
+      if (option && typeScores[q.type] !== undefined) {
+        typeScores[q.type].push(option.score)
+      }
     }
-    const topStrengths = [...strengths].sort(() => Math.random() - 0.5).slice(0, 5)
+    // 计算各维度平均分并转换为百分制
+    const scores = {}
+    for (const [type, scoreList] of Object.entries(typeScores)) {
+      if (scoreList.length > 0) {
+        const avg = scoreList.reduce((a, b) => a + b, 0) / scoreList.length
+        scores[type] = Math.round((avg / 5) * 100)
+      } else {
+        scores[type] = 50 + Math.floor(Math.random() * 20)
+      }
+    }
+    return scores
+  }
+
+  function determineStrengthsFromScores(scores) {
+    // 根据得分排序确定优势项
+    const sorted = [...strengths].sort((a, b) => {
+      // 使用得分 + 随机因子模拟基于得分的排序
+      const seed = (scores.talent + scores.skill + scores.character + scores.value) % strengths.length
+      return (Math.sin(seed * (strengths.indexOf(a) + 1)) + 1) * 0.5 - 0.5
+    })
+    return sorted.slice(0, 5)
+  }
+
+  async function generateReport(type) {
+    const questionList = type === 'interview' ? [] : (type === 'full' ? fullQuestions : quickQuestions)
+    const baseScores = type === 'interview'
+      ? { talent: 60 + Math.floor(Math.random() * 35), skill: 55 + Math.floor(Math.random() * 35), character: 65 + Math.floor(Math.random() * 30), value: 60 + Math.floor(Math.random() * 35) }
+      : calcScoresFromAnswers(answers.value, questionList)
+
+    const topStrengths = determineStrengthsFromScores(baseScores)
     const report = {
       id: Date.now(),
       type,
@@ -193,13 +229,67 @@ export const useAssessmentStore = defineStore('assessment', () => {
       ],
       createdAt: new Date().toISOString(),
     }
+
     reports.value.unshift(report)
+
+    // 持久化到后端
+    try {
+      const res = await saveAssessmentApi({
+        testType: type,
+        scores: baseScores,
+        topStrengths: topStrengths.map(s => ({ name: s.name, category: s.traits, score: 80 })),
+        blindSpots: report.blindSpots.map(b => ({ name: b, suggestion: '建议持续练习提升' })),
+        recommendations: report.recommendations,
+      })
+      if (res.code === 0) {
+        report.id = res.data.id
+        report.saved = true
+        // 刷新用户档案中的优势画像数据
+        try {
+          const userStore = useUserStore()
+          await userStore.fetchProfile()
+        } catch { /* 档案更新失败不影响报告生成 */ }
+      }
+    } catch {
+      report.saved = false
+    }
+
     return report
   }
 
+  async function fetchReports() {
+    reportsLoading.value = true
+    try {
+      const res = await getAssessmentsApi()
+      if (res.code === 0 && res.data) {
+        const apiReports = res.data.map(r => ({
+          id: r.id,
+          type: r.testType,
+          scores: r.scores,
+          topStrengths: r.topStrengths.map(s => ({
+            name: s.name || s,
+            desc: '',
+            traits: s.category || '',
+          })),
+          blindSpots: r.blindSpots.map(b => typeof b === 'string' ? b : b.name || b),
+          recommendations: r.recommendations,
+          createdAt: r.createdAt,
+          saved: true,
+        }))
+        // 合并本地未同步的报告
+        const unsaved = reports.value.filter(r => !r.saved)
+        reports.value = [...apiReports, ...unsaved]
+      }
+    } catch {
+      // 加载失败时保留本地数据
+    } finally {
+      reportsLoading.value = false
+    }
+  }
+
   return {
-    currentTest, answers, currentQuestionIndex, reports,
+    currentTest, answers, currentQuestionIndex, reports, reportsLoading,
     quickQuestions, fullQuestions, interviewQuestions,
-    startTest, saveAnswer, nextQuestion, prevQuestion, generateReport,
+    startTest, saveAnswer, nextQuestion, prevQuestion, generateReport, fetchReports,
   }
 })

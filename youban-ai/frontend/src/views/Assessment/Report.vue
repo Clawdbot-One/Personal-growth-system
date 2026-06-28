@@ -283,14 +283,21 @@ const store = useAssessmentStore()
 const report = ref(null)
 const reportContainer = ref(null)
 
-onMounted(() => {
+onMounted(async () => {
   const id = Number(route.params.id)
   const found = store.reports.find(r => r.id === id)
   if (found) {
     report.value = found
   } else {
-    // 如果找不到报告，生成一个模拟报告
-    report.value = store.generateReport('quick')
+    // 尝试从后端加载历史报告
+    await store.fetchReports()
+    const fromApi = store.reports.find(r => r.id === id)
+    if (fromApi) {
+      report.value = fromApi
+    } else {
+      // 如果找不到报告，生成一个模拟报告
+      report.value = await store.generateReport('quick')
+    }
   }
 })
 

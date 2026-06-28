@@ -153,9 +153,14 @@
 import AppLayout from '@/components/layout/AppLayout.vue'
 import { useRouter } from 'vue-router'
 import { useAssessmentStore } from '@/stores/assessment'
+import { onMounted } from 'vue'
 
 const router = useRouter()
 const assessmentStore = useAssessmentStore()
+
+onMounted(() => {
+  assessmentStore.fetchReports()
+})
 
 const assessmentTypes = [
   {

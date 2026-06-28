@@ -266,17 +266,19 @@ function confirmExit() {
   router.back()
 }
 
-function handleSubmit() {
+async function handleSubmit() {
   if (!selectedAnswer.value) return
   store.saveAnswer(currentQuestion.value.id, selectedAnswer.value)
   isSubmitting.value = true
 
-  // 模拟提交延迟
-  setTimeout(() => {
-    const report = store.generateReport('quick')
-    isSubmitting.value = false
+  try {
+    const report = await store.generateReport('quick')
     router.push(`/assessment/report/${report.id}`)
-  }, 800)
+  } catch {
+    // 即使保存失败也跳转查看报告
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
