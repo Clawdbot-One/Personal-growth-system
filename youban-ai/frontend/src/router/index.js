@@ -136,6 +136,63 @@ const routes = [
     component: () => import('@/views/Profile/Settings.vue'),
     meta: { title: '设置' },
   },
+  // 认知偏差扫描仪
+  {
+    path: '/cognitive-bias',
+    name: 'CognitiveBias',
+    component: () => import('@/views/CognitiveBias/Index.vue'),
+    meta: { title: '认知偏差扫描仪' },
+  },
+  {
+    path: '/cognitive-bias/test',
+    name: 'CognitiveBiasTest',
+    component: () => import('@/views/CognitiveBias/Test.vue'),
+    meta: { title: '认知偏差扫描' },
+  },
+  {
+    path: '/cognitive-bias/result/:id',
+    name: 'CognitiveBiasResult',
+    component: () => import('@/views/CognitiveBias/Result.vue'),
+    meta: { title: '扫描报告' },
+  },
+  // 双系统思维训练
+  {
+    path: '/dual-system',
+    name: 'DualSystem',
+    component: () => import('@/views/DualSystem/Index.vue'),
+    meta: { title: '双系统思维训练' },
+  },
+  {
+    path: '/dual-system/test',
+    name: 'DualSystemTest',
+    component: () => import('@/views/DualSystem/Test.vue'),
+    meta: { title: '思维训练' },
+  },
+  {
+    path: '/dual-system/result/:id',
+    name: 'DualSystemResult',
+    component: () => import('@/views/DualSystem/Result.vue'),
+    meta: { title: '训练报告' },
+  },
+  // 过度自信校准
+  {
+    path: '/calibration',
+    name: 'Calibration',
+    component: () => import('@/views/Calibration/Index.vue'),
+    meta: { title: '过度自信校准' },
+  },
+  {
+    path: '/calibration/test',
+    name: 'CalibrationTest',
+    component: () => import('@/views/Calibration/Test.vue'),
+    meta: { title: '校准测试' },
+  },
+  {
+    path: '/calibration/result/:id',
+    name: 'CalibrationResult',
+    component: () => import('@/views/Calibration/Result.vue'),
+    meta: { title: '校准报告' },
+  },
   // 管理后台
   {
     path: '/admin',

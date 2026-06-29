@@ -19,6 +19,15 @@ import {
   getMentalAssessments, createMentalAssessment,
   getDashboard,
 } from './routes/deliberatePractice.js'
+import {
+  startBiasTest, submitBiasAnswer, getBiasResult, getBiasHistory,
+} from './routes/cognitiveBias.js'
+import {
+  startDualSystemTest, submitDualSystemAnswer, getDualSystemResult, getDualSystemHistory,
+} from './routes/dualSystem.js'
+import {
+  startCalibrationTest, submitCalibrationAnswer, getCalibrationResult, getCalibrationHistory,
+} from './routes/calibration.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -99,6 +108,24 @@ app.get('/api/dp/focus', authMiddleware, getFocusSessions)
 app.post('/api/dp/focus', authMiddleware, recordFocusSession)
 app.get('/api/dp/mental', authMiddleware, getMentalAssessments)
 app.post('/api/dp/mental', authMiddleware, createMentalAssessment)
+
+// 认知偏差扫描仪
+app.post('/api/cognitive-bias/start', authMiddleware, startBiasTest)
+app.post('/api/cognitive-bias/submit', authMiddleware, submitBiasAnswer)
+app.get('/api/cognitive-bias/result/:sessionId', authMiddleware, getBiasResult)
+app.get('/api/cognitive-bias/history', authMiddleware, getBiasHistory)
+
+// 双系统思维训练
+app.post('/api/dual-system/start', authMiddleware, startDualSystemTest)
+app.post('/api/dual-system/submit', authMiddleware, submitDualSystemAnswer)
+app.get('/api/dual-system/result/:sessionId', authMiddleware, getDualSystemResult)
+app.get('/api/dual-system/history', authMiddleware, getDualSystemHistory)
+
+// 过度自信校准
+app.post('/api/calibration/start', authMiddleware, startCalibrationTest)
+app.post('/api/calibration/submit', authMiddleware, submitCalibrationAnswer)
+app.get('/api/calibration/result/:sessionId', authMiddleware, getCalibrationResult)
+app.get('/api/calibration/history', authMiddleware, getCalibrationHistory)
 
 app.listen(PORT, () => {
   console.log(`优伴AI 会员服务已启动: http://localhost:${PORT}`)

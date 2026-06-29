@@ -272,6 +272,97 @@ db.exec(`
   );
 `)
 
+  // === 认知偏差扫描仪 ===
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS cognitive_bias_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL,
+      status TEXT DEFAULT 'in_progress',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      completed_at TEXT,
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS cognitive_bias_results (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id INTEGER NOT NULL,
+      member_id INTEGER NOT NULL,
+      bias_type TEXT NOT NULL,
+      bias_name TEXT NOT NULL,
+      score INTEGER DEFAULT 0,
+      level TEXT DEFAULT 'low',
+      interpretation TEXT DEFAULT '',
+      suggestions TEXT DEFAULT '[]',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (session_id) REFERENCES cognitive_bias_sessions(id) ON DELETE CASCADE,
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+  `)
+
+  // === 双系统思维训练 ===
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS dual_system_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL,
+      status TEXT DEFAULT 'in_progress',
+      total_questions INTEGER DEFAULT 0,
+      correct_count INTEGER DEFAULT 0,
+      system1_count INTEGER DEFAULT 0,
+      system2_count INTEGER DEFAULT 0,
+      avg_reaction_time_ms INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      completed_at TEXT,
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS dual_system_results (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id INTEGER NOT NULL,
+      member_id INTEGER NOT NULL,
+      question_id INTEGER NOT NULL,
+      user_answer TEXT,
+      correct_answer TEXT,
+      is_correct INTEGER DEFAULT 0,
+      reaction_time_ms INTEGER DEFAULT 0,
+      thinking_mode TEXT DEFAULT 'system1',
+      question_type TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (session_id) REFERENCES dual_system_sessions(id) ON DELETE CASCADE,
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+  `)
+
+  // === 过度自信校准 ===
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS calibration_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL,
+      status TEXT DEFAULT 'in_progress',
+      total_questions INTEGER DEFAULT 0,
+      correct_count INTEGER DEFAULT 0,
+      brier_score REAL DEFAULT 0,
+      calibration_level TEXT DEFAULT 'uncalibrated',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      completed_at TEXT,
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS calibration_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id INTEGER NOT NULL,
+      member_id INTEGER NOT NULL,
+      question_id INTEGER NOT NULL,
+      category TEXT DEFAULT '',
+      user_answer TEXT,
+      correct_answer TEXT,
+      is_correct INTEGER DEFAULT 0,
+      confidence INTEGER DEFAULT 50,
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (session_id) REFERENCES calibration_sessions(id) ON DELETE CASCADE,
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+  `)
+
 // Create indexes
 db.exec(`
   CREATE INDEX IF NOT EXISTS idx_members_username ON members(username);
@@ -290,6 +381,12 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_dp_focus_member ON dp_focus_sessions(member_id);
   CREATE INDEX IF NOT EXISTS idx_dp_mental_member ON dp_mental_representation_assessments(member_id);
   CREATE INDEX IF NOT EXISTS idx_dp_plans_member ON dp_training_plans(member_id);
+  CREATE INDEX IF NOT EXISTS idx_cb_sessions_member ON cognitive_bias_sessions(member_id);
+  CREATE INDEX IF NOT EXISTS idx_cb_results_session ON cognitive_bias_results(session_id);
+  CREATE INDEX IF NOT EXISTS idx_ds_sessions_member ON dual_system_sessions(member_id);
+  CREATE INDEX IF NOT EXISTS idx_ds_results_session ON dual_system_results(session_id);
+  CREATE INDEX IF NOT EXISTS idx_cal_sessions_member ON calibration_sessions(member_id);
+  CREATE INDEX IF NOT EXISTS idx_cal_records_session ON calibration_records(session_id);
 `)
 
 export default db

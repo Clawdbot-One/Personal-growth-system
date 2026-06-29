@@ -18,6 +18,18 @@
           <el-icon><EditPen /></el-icon>
           <span>优势测评</span>
         </router-link>
+        <router-link to="/cognitive-bias" class="nav-item" active-class="active">
+          <el-icon><Cpu /></el-icon>
+          <span>认知偏差</span>
+        </router-link>
+        <router-link to="/dual-system" class="nav-item" active-class="active">
+          <el-icon><MagicStick /></el-icon>
+          <span>思维训练</span>
+        </router-link>
+        <router-link to="/calibration" class="nav-item" active-class="active">
+          <el-icon><CircleCheck /></el-icon>
+          <span>自信校准</span>
+        </router-link>
         <router-link to="/growth" class="nav-item" active-class="active">
           <el-icon><TrendCharts /></el-icon>
           <span>成长路径</span>
