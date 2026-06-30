@@ -30,6 +30,26 @@
           <el-icon><CircleCheck /></el-icon>
           <span>自信校准</span>
         </router-link>
+        <router-link to="/cognitive-level" class="nav-item" active-class="active">
+          <el-icon><DataAnalysis /></el-icon>
+          <span>认知层次</span>
+        </router-link>
+        <router-link to="/cognitive-value" class="nav-item" active-class="active">
+          <el-icon><Trophy /></el-icon>
+          <span>价值定位</span>
+        </router-link>
+        <router-link to="/cognitive-value/compound-growth" class="nav-item" active-class="active">
+          <el-icon><UploadFilled /></el-icon>
+          <span>复利成长</span>
+        </router-link>
+        <router-link to="/cognitive-value/knowledge-network" class="nav-item" active-class="active">
+          <el-icon><Share /></el-icon>
+          <span>知识网络</span>
+        </router-link>
+        <router-link to="/decision-support" class="nav-item" active-class="active">
+          <el-icon><Finished /></el-icon>
+          <span>决策辅助</span>
+        </router-link>
         <router-link to="/growth" class="nav-item" active-class="active">
           <el-icon><TrendCharts /></el-icon>
           <span>成长路径</span>

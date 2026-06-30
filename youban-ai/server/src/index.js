@@ -28,6 +28,14 @@ import {
 import {
   startCalibrationTest, submitCalibrationAnswer, getCalibrationResult, getCalibrationHistory,
 } from './routes/calibration.js'
+import {
+  startCognitiveLevelTest, submitCognitiveLevelAnswers, getCognitiveLevelResult, getCognitiveLevelHistory,
+} from './routes/cognitiveLevel.js'
+import { analyzeValuePositioning, getValueAnalysisHistory } from './routes/valueAnalysis.js'
+import { analyzeLeveragePoints, getLeverageAnalysisHistory } from './routes/leverageAnalysis.js'
+import { getCompoundGrowthData, getMicroHabits, toggleMicroHabit, getStreakStats } from './routes/compoundGrowth.js'
+import { getKnowledgeNetwork, updateKnowledgeNode } from './routes/knowledgeNetwork.js'
+import { createDecision, analyzeDecision, completeDecision, getDecisionHistory } from './routes/decisionSupport.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -126,6 +134,36 @@ app.post('/api/calibration/start', authMiddleware, startCalibrationTest)
 app.post('/api/calibration/submit', authMiddleware, submitCalibrationAnswer)
 app.get('/api/calibration/result/:sessionId', authMiddleware, getCalibrationResult)
 app.get('/api/calibration/history', authMiddleware, getCalibrationHistory)
+
+// 认知层次诊断
+app.post('/api/cognitive-level/start', authMiddleware, startCognitiveLevelTest)
+app.post('/api/cognitive-level/submit', authMiddleware, submitCognitiveLevelAnswers)
+app.get('/api/cognitive-level/result/:sessionId', authMiddleware, getCognitiveLevelResult)
+app.get('/api/cognitive-level/history', authMiddleware, getCognitiveLevelHistory)
+
+// 价值定位分析
+app.post('/api/value-analysis', authMiddleware, analyzeValuePositioning)
+app.get('/api/value-analysis/history', authMiddleware, getValueAnalysisHistory)
+
+// 杠杆点分析
+app.post('/api/leverage-analysis', authMiddleware, analyzeLeveragePoints)
+app.get('/api/leverage-analysis/history', authMiddleware, getLeverageAnalysisHistory)
+
+// 复利成长追踪
+app.get('/api/compound-growth', authMiddleware, getCompoundGrowthData)
+app.get('/api/micro-habits', authMiddleware, getMicroHabits)
+app.post('/api/micro-habits/toggle', authMiddleware, toggleMicroHabit)
+app.get('/api/streak-stats', authMiddleware, getStreakStats)
+
+// 知识网络
+app.get('/api/knowledge-network', authMiddleware, getKnowledgeNetwork)
+app.post('/api/knowledge-network/update', authMiddleware, updateKnowledgeNode)
+
+// 决策辅助
+app.post('/api/decision', authMiddleware, createDecision)
+app.post('/api/decision/analyze', authMiddleware, analyzeDecision)
+app.post('/api/decision/complete', authMiddleware, completeDecision)
+app.get('/api/decision/history', authMiddleware, getDecisionHistory)
 
 app.listen(PORT, () => {
   console.log(`优伴AI 会员服务已启动: http://localhost:${PORT}`)

@@ -363,6 +363,129 @@ db.exec(`
     );
   `)
 
+  // === 认知层次诊断 ===
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS cognitive_level_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL,
+      status TEXT DEFAULT 'in_progress',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      completed_at TEXT,
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS cognitive_level_results (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id INTEGER NOT NULL,
+      member_id INTEGER NOT NULL,
+      dimension TEXT NOT NULL,
+      dimension_name TEXT DEFAULT '',
+      level INTEGER DEFAULT 1,
+      level_name TEXT DEFAULT '',
+      score INTEGER DEFAULT 0,
+      blind_spots TEXT DEFAULT '[]',
+      breakthrough_tips TEXT DEFAULT '[]',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (session_id) REFERENCES cognitive_level_sessions(id) ON DELETE CASCADE,
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+  `)
+
+  // === 价值定位分析 ===
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS value_assessments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL,
+      usefulness_score INTEGER DEFAULT 0,
+      scarcity_score INTEGER DEFAULT 0,
+      irreplaceability_score INTEGER DEFAULT 0,
+      value_index INTEGER DEFAULT 0,
+      top_fields TEXT DEFAULT '[]',
+      recommendations TEXT DEFAULT '[]',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+  `)
+
+  // === 杠杆点分析 ===
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS leverage_analyses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL,
+      ability_leverage TEXT DEFAULT '[]',
+      platform_leverage TEXT DEFAULT '[]',
+      network_leverage TEXT DEFAULT '[]',
+      resource_leverage TEXT DEFAULT '[]',
+      high_leverage_points TEXT DEFAULT '[]',
+      roi_analysis TEXT DEFAULT '[]',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+  `)
+
+  // === 复利成长追踪 ===
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS compound_growth_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL,
+      dimension TEXT DEFAULT '',
+      dimension_name TEXT DEFAULT '',
+      daily_growth_rate REAL DEFAULT 0,
+      current_level REAL DEFAULT 0,
+      streak_days INTEGER DEFAULT 0,
+      projected_milestone_date TEXT,
+      next_milestone TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS micro_habit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL,
+      habit_name TEXT DEFAULT '',
+      dimension TEXT DEFAULT '',
+      completed INTEGER DEFAULT 0,
+      log_date TEXT DEFAULT (date('now', 'localtime')),
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+  `)
+
+  // === 知识网络 ===
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS knowledge_nodes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL,
+      name TEXT DEFAULT '',
+      category TEXT DEFAULT '',
+      mastery_level INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'to_learn',
+      prerequisites TEXT DEFAULT '[]',
+      related_nodes TEXT DEFAULT '[]',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+  `)
+
+  // === 决策辅助 ===
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS decision_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL,
+      title TEXT DEFAULT '',
+      description TEXT DEFAULT '',
+      options TEXT DEFAULT '[]',
+      probabilities TEXT DEFAULT '[]',
+      expected_values TEXT DEFAULT '[]',
+      chosen_option TEXT DEFAULT '',
+      actual_outcome TEXT DEFAULT '',
+      satisfaction INTEGER DEFAULT 0,
+      biases_detected TEXT DEFAULT '[]',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+  `)
+
 // Create indexes
 db.exec(`
   CREATE INDEX IF NOT EXISTS idx_members_username ON members(username);
@@ -387,6 +510,14 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_ds_results_session ON dual_system_results(session_id);
   CREATE INDEX IF NOT EXISTS idx_cal_sessions_member ON calibration_sessions(member_id);
   CREATE INDEX IF NOT EXISTS idx_cal_records_session ON calibration_records(session_id);
+  CREATE INDEX IF NOT EXISTS idx_cl_sessions_member ON cognitive_level_sessions(member_id);
+  CREATE INDEX IF NOT EXISTS idx_cl_results_session ON cognitive_level_results(session_id);
+  CREATE INDEX IF NOT EXISTS idx_value_assess_member ON value_assessments(member_id);
+  CREATE INDEX IF NOT EXISTS idx_leverage_member ON leverage_analyses(member_id);
+  CREATE INDEX IF NOT EXISTS idx_compound_member ON compound_growth_records(member_id);
+  CREATE INDEX IF NOT EXISTS idx_habit_member ON micro_habit_logs(member_id);
+  CREATE INDEX IF NOT EXISTS idx_knowledge_member ON knowledge_nodes(member_id);
+  CREATE INDEX IF NOT EXISTS idx_decision_member ON decision_records(member_id);
 `)
 
 export default db

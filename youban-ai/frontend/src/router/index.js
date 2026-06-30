@@ -193,6 +193,57 @@ const routes = [
     component: () => import('@/views/Calibration/Result.vue'),
     meta: { title: '校准报告' },
   },
+  // 认知层次诊断
+  {
+    path: '/cognitive-level',
+    name: 'CognitiveLevel',
+    component: () => import('@/views/CognitiveLevel/Index.vue'),
+    meta: { title: '认知层次诊断' },
+  },
+  {
+    path: '/cognitive-level/test',
+    name: 'CognitiveLevelTest',
+    component: () => import('@/views/CognitiveLevel/Test.vue'),
+    meta: { title: '认知诊断' },
+  },
+  {
+    path: '/cognitive-level/result/:id',
+    name: 'CognitiveLevelResult',
+    component: () => import('@/views/CognitiveLevel/Result.vue'),
+    meta: { title: '诊断报告' },
+  },
+  // 价值定位分析
+  {
+    path: '/cognitive-value',
+    name: 'CognitiveValue',
+    component: () => import('@/views/CognitiveValue/Index.vue'),
+    meta: { title: '价值定位分析' },
+  },
+  {
+    path: '/cognitive-value/leverage',
+    name: 'LeverageAnalysis',
+    component: () => import('@/views/CognitiveValue/Leverage.vue'),
+    meta: { title: '杠杆点分析' },
+  },
+  {
+    path: '/cognitive-value/compound-growth',
+    name: 'CompoundGrowth',
+    component: () => import('@/views/CognitiveValue/CompoundGrowth.vue'),
+    meta: { title: '复利成长引擎' },
+  },
+  {
+    path: '/cognitive-value/knowledge-network',
+    name: 'KnowledgeNetwork',
+    component: () => import('@/views/CognitiveValue/KnowledgeNetwork.vue'),
+    meta: { title: '知识网络' },
+  },
+  // 决策辅助
+  {
+    path: '/decision-support',
+    name: 'DecisionSupport',
+    component: () => import('@/views/DecisionSupport/Index.vue'),
+    meta: { title: '决策辅助系统' },
+  },
   // 管理后台
   {
     path: '/admin',
