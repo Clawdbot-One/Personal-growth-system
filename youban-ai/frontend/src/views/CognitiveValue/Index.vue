@@ -9,8 +9,15 @@
         <div class="formula"><span class="f-item">有用性</span><span class="f-op">×</span><span class="f-item">稀缺性</span><span class="f-op">×</span><span class="f-item">不可替代性</span><span class="f-op">=</span><span class="f-result">个人价值</span></div>
       </div>
       <div class="action-area">
-        <el-button type="primary" size="large" round @click="runAnalysis" :loading="loading">开始分析</el-button>
+        <div class="usage-info" v-if="membershipStore.level !== 'admin'">
+          <el-tag :type="usageInfo.remaining > 0 ? 'info' : 'danger'" size="large" effect="plain">
+            本月已用 {{ usageInfo.usage }} / {{ usageInfo.limit === Infinity ? '∞' : usageInfo.limit }} 次
+          </el-tag>
+        </div>
+        <el-button v-if="usageInfo.remaining > 0 || membershipStore.level === 'admin'" type="primary" size="large" round @click="runAnalysis" :loading="loading">开始分析</el-button>
+        <el-button v-else type="warning" size="large" round @click="$router.push('/upgrade')">立即升级 <el-icon><ArrowRight /></el-icon></el-button>
       </div>
+      <UpgradePrompt v-if="showUpgrade" title="分析次数已用完" :sub-title="`当前等级：${membershipStore.levelLabel}，本月已使用 ${usageInfo.usage}/${usageInfo.limit} 次`" :usage-info="usageInfo" />
       <div class="result-section" v-if="store.result">
         <div class="stats-row">
           <div class="stat-card"><span class="stat-value">{{ store.result.valueIndex }}</span><span class="stat-label">价值指数</span></div>
@@ -34,12 +41,20 @@
 
 <script setup>
 import AppLayout from '@/components/layout/AppLayout.vue'
+import UpgradePrompt from '@/components/common/UpgradePrompt.vue'
 import { useValueAnalysisStore } from '@/stores/valueAnalysis'
+import { useMembershipStore } from '@/stores/membership'
 import { useAssessmentStore } from '@/stores/assessment'
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 
 const store = useValueAnalysisStore()
+const membershipStore = useMembershipStore()
 const loading = ref(false)
+const showUpgrade = ref(false)
+const usageInfo = computed(() => membershipStore.getFeatureLimit('value-analysis'))
+
+onMounted(() => { membershipStore.fetchLimits() })
 
 function getFieldColor(match) { return match >= 80 ? '#67C23A' : match >= 60 ? '#2563EB' : '#E6A23C' }
 
@@ -47,13 +62,17 @@ async function runAnalysis() {
   loading.value = true
   const assessmentStore = useAssessmentStore()
   const latestReport = assessmentStore.reports[0]
-  await store.runAnalysis({
-    talent: latestReport?.scores?.talent || 0,
-    skill: latestReport?.scores?.skill || 0,
-    character: latestReport?.scores?.character || 0,
-    value: latestReport?.scores?.value || 0,
-  })
-  loading.value = false
+  try {
+    await store.runAnalysis({
+      talent: latestReport?.scores?.talent || 0,
+      skill: latestReport?.scores?.skill || 0,
+      character: latestReport?.scores?.character || 0,
+      value: latestReport?.scores?.value || 0,
+    })
+  } catch (err) {
+    if (err.response?.status === 403) { showUpgrade.value = true; membershipStore.fetchLimits() }
+    else { ElMessage.error('分析失败，请稍后重试') }
+  } finally { loading.value = false }
 }
 </script>
 

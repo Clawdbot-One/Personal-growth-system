@@ -1,4 +1,5 @@
 import db from '../db/init.js'
+import { checkAccess, incrementUsage } from '../middleware/level.js'
 
 export function getLearningData(req, res) {
   const memberId = req.member.id
@@ -12,6 +13,43 @@ export function getLearningData(req, res) {
 export function saveAssessment(req, res) {
   const memberId = req.member.id
   const { testType, scores, topStrengths, blindSpots, recommendations } = req.body
+
+  // 完整版和访谈版测评需要等级限制
+  if (testType === 'full') {
+    const access = checkAccess(memberId, 'assessment-full')
+    if (!access.allowed) {
+      return res.status(403).json({
+        code: 403,
+        message: access.reason || '完整版测评需要升级会员',
+        data: {
+          currentLevel: access.level,
+          currentLevelLabel: access.levelLabel,
+          usage: access.usage,
+          limit: access.limit,
+          feature: 'assessment-full',
+          upgradeUrl: '/upgrade',
+        },
+      })
+    }
+    incrementUsage(memberId, 'assessment-full')
+  } else if (testType === 'interview') {
+    const access = checkAccess(memberId, 'assessment-interview')
+    if (!access.allowed) {
+      return res.status(403).json({
+        code: 403,
+        message: access.reason || '访谈版测评需要升级会员',
+        data: {
+          currentLevel: access.level,
+          currentLevelLabel: access.levelLabel,
+          usage: access.usage,
+          limit: access.limit,
+          feature: 'assessment-interview',
+          upgradeUrl: '/upgrade',
+        },
+      })
+    }
+    incrementUsage(memberId, 'assessment-interview')
+  }
 
   const result = db.prepare(`
     INSERT INTO assessment_records (member_id, test_type, scores, top_strengths, blind_spots, recommendations)

@@ -66,6 +66,10 @@
           <el-icon><Collection /></el-icon>
           <span>实践库</span>
         </router-link>
+        <router-link v-if="userStore.user?.memberLevel !== 'admin'" to="/upgrade" class="nav-item upgrade-nav" active-class="active">
+          <el-icon><Present /></el-icon>
+          <span>升级会员</span>
+        </router-link>
         <router-link to="/profile" class="nav-item" active-class="active">
           <el-icon><UserFilled /></el-icon>
           <span>个人中心</span>
@@ -265,6 +269,21 @@ onUnmounted(() => {
   border-top: 1px solid var(--border);
   margin-top: 8px;
   padding-top: 16px;
+}
+.upgrade-nav {
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  padding-top: 16px;
+  color: #f59e0b;
+}
+.upgrade-nav:hover {
+  background: rgba(245, 158, 11, 0.08);
+  color: #d97706;
+}
+.upgrade-nav.active {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  font-weight: 600;
 }
 .admin-nav:hover {
   background: rgba(234, 179, 8, 0.08);

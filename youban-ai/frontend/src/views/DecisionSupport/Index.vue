@@ -6,18 +6,27 @@
         <p>基于期望值思维，用概率和理性分析辅助你做出更好的决策</p>
       </div>
       <div class="create-section">
-        <h3>创建新决策</h3>
-        <el-input v-model="title" placeholder="决策标题（如：是否换工作）" class="ds-input" />
-        <el-input v-model="description" placeholder="描述决策背景..." type="textarea" :rows="3" class="ds-input" />
-        <div class="options-editor">
-          <span class="options-label">可选方案：</span>
-          <div class="option-row" v-for="(opt, i) in options" :key="i">
-            <el-input v-model="options[i]" :placeholder="'方案 ' + (i + 1)" size="small" />
-            <el-button type="danger" :icon="Delete" circle size="small" @click="options.splice(i, 1)" :disabled="options.length <= 2" />
-          </div>
-          <el-button type="primary" link @click="options.push('')">+ 添加方案</el-button>
+        <div class="usage-info" v-if="membershipStore.level !== 'admin'" style="margin-bottom: 16px;">
+          <el-tag :type="usageInfo.remaining > 0 ? 'info' : 'danger'" size="large" effect="plain">
+            本月已创建 {{ usageInfo.usage }} / {{ usageInfo.limit === Infinity ? '∞' : usageInfo.limit }} 个决策
+            <span v-if="usageInfo.remaining === 0">（已达上限）</span>
+          </el-tag>
         </div>
-        <el-button type="primary" @click="handleCreate" :loading="loading" :disabled="!title || options.some(o => !o)">创建决策</el-button>
+        <template v-if="usageInfo.remaining > 0 || membershipStore.level === 'admin'">
+          <h3>创建新决策</h3>
+          <el-input v-model="title" placeholder="决策标题（如：是否换工作）" class="ds-input" />
+          <el-input v-model="description" placeholder="描述决策背景..." type="textarea" :rows="3" class="ds-input" />
+          <div class="options-editor">
+            <span class="options-label">可选方案：</span>
+            <div class="option-row" v-for="(opt, i) in options" :key="i">
+              <el-input v-model="options[i]" :placeholder="'方案 ' + (i + 1)" size="small" />
+              <el-button type="danger" :icon="Delete" circle size="small" @click="options.splice(i, 1)" :disabled="options.length <= 2" />
+            </div>
+            <el-button type="primary" link @click="options.push('')">+ 添加方案</el-button>
+          </div>
+          <el-button type="primary" @click="handleCreate" :loading="loading" :disabled="!title || options.some(o => !o)">创建决策</el-button>
+        </template>
+        <UpgradePrompt v-else title="决策创建次数已用完" :sub-title="`当前等级：${membershipStore.levelLabel}，本月已创建 ${usageInfo.usage}/${usageInfo.limit} 个决策`" :usage-info="usageInfo" />
       </div>
       <div class="decision-section" v-if="store.currentDecision">
         <h3>当前决策分析</h3>
@@ -47,22 +56,31 @@
 
 <script setup>
 import AppLayout from '@/components/layout/AppLayout.vue'
+import UpgradePrompt from '@/components/common/UpgradePrompt.vue'
 import { useDecisionSupportStore } from '@/stores/decisionSupport'
-import { ref, onMounted } from 'vue'
+import { useMembershipStore } from '@/stores/membership'
+import { ref, computed, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import { Delete } from '@element-plus/icons-vue'
 
 const store = useDecisionSupportStore()
+const membershipStore = useMembershipStore()
 const title = ref('')
 const description = ref('')
 const options = ref(['方案A', '方案B'])
 const loading = ref(false)
+const usageInfo = computed(() => membershipStore.getFeatureLimit('decision'))
 
-onMounted(() => { store.fetchHistory() })
+onMounted(() => { store.fetchHistory(); membershipStore.fetchLimits() })
 
 async function handleCreate() {
   loading.value = true
-  await store.create({ title: title.value, description: description.value, options: options.value.filter(Boolean) })
-  loading.value = false
+  try {
+    await store.create({ title: title.value, description: description.value, options: options.value.filter(Boolean) })
+  } catch (err) {
+    if (err.response?.status === 403) { membershipStore.fetchLimits() }
+    else { ElMessage.error('创建决策失败，请稍后重试') }
+  } finally { loading.value = false }
 }
 
 async function handleAnalyze() {

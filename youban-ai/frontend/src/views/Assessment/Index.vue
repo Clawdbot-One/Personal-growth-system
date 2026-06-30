@@ -29,6 +29,18 @@
               <el-tag type="info" effect="light" size="small" round>
                 {{ item.questions }}
               </el-tag>
+              <el-tag
+                v-if="item.type === 'full' && membershipStore.isFree"
+                type="warning" effect="dark" size="small" round
+              >
+                需要升级
+              </el-tag>
+              <el-tag
+                v-if="item.type === 'interview' && !membershipStore.isVip && !membershipStore.isAdmin"
+                type="warning" effect="dark" size="small" round
+              >
+                VIP专属
+              </el-tag>
             </div>
           </div>
           <h3 class="type-title">{{ item.title }}</h3>
@@ -153,13 +165,17 @@
 import AppLayout from '@/components/layout/AppLayout.vue'
 import { useRouter } from 'vue-router'
 import { useAssessmentStore } from '@/stores/assessment'
+import { useMembershipStore } from '@/stores/membership'
 import { onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const assessmentStore = useAssessmentStore()
+const membershipStore = useMembershipStore()
 
 onMounted(() => {
   assessmentStore.fetchReports()
+  membershipStore.fetchLimits()
 })
 
 const assessmentTypes = [
@@ -205,6 +221,17 @@ const assessmentTypes = [
 ]
 
 function goToTest(route) {
+  // 检查完整版和访谈版的等级限制
+  if (route === '/assessment/full' && membershipStore.isFree) {
+    ElMessage.warning('完整版测评需要升级到高级版或VIP版')
+    router.push('/upgrade')
+    return
+  }
+  if (route === '/assessment/interview' && !membershipStore.isVip && !membershipStore.isAdmin) {
+    ElMessage.warning('访谈版测评仅限VIP会员使用')
+    router.push('/upgrade')
+    return
+  }
   router.push(route)
 }
 

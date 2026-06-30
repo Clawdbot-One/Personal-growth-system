@@ -137,6 +137,31 @@
 
       <!-- 右栏 -->
       <div class="dashboard-right">
+        <!-- 会员等级卡片 -->
+        <el-card class="section-card membership-card" shadow="never" v-if="membershipStore.level !== 'admin'">
+          <template #header>
+            <span class="card-title">会员等级</span>
+          </template>
+          <div class="membership-info">
+            <div class="membership-level">
+              <el-tag :type="membershipStore.isVip ? 'warning' : membershipStore.isPremium ? 'primary' : 'info'" size="large" effect="dark">
+                {{ membershipStore.levelLabel }}
+              </el-tag>
+            </div>
+            <div class="membership-features" v-if="membershipStore.limits">
+              <div class="mf-item" v-for="(info, key) in membershipStore.limits.limits" :key="key">
+                <span class="mf-label">{{ getFeatureLabel(key) }}</span>
+                <span class="mf-usage" :class="{ 'mf-limit': info.remaining === 0 }">
+                  {{ info.usage }}/{{ info.limit === Infinity ? '∞' : info.limit }}
+                </span>
+              </div>
+            </div>
+            <el-button type="warning" round class="upgrade-btn" @click="$router.push('/upgrade')" v-if="!membershipStore.isVip">
+              升级会员
+            </el-button>
+          </div>
+        </el-card>
+
         <!-- 快捷入口 -->
         <el-card class="section-card" shadow="never">
           <template #header>
@@ -218,17 +243,39 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { useAssessmentStore } from '@/stores/assessment'
+import { useMembershipStore } from '@/stores/membership'
 import { useRouter } from 'vue-router'
 import request from '@/api/request.js'
 
 const userStore = useUserStore()
 const assessmentStore = useAssessmentStore()
+const membershipStore = useMembershipStore()
 const router = useRouter()
 const recommendations = ref([])
+
+const featureLabels = {
+  'cognitive-bias': '认知偏差',
+  'dual-system': '思维训练',
+  'calibration': '自信校准',
+  'cognitive-level': '认知层次',
+  'value-analysis': '价值定位',
+  'leverage-analysis': '杠杆分析',
+  'ai-chat': 'AI助手',
+  'decision': '决策辅助',
+  'compound-growth': '复利成长',
+  'knowledge-network': '知识网络',
+  'assessment-full': '完整版测评',
+  'assessment-interview': '访谈版测评',
+}
+
+function getFeatureLabel(key) {
+  return featureLabels[key] || key
+}
 
 onMounted(async () => {
   await userStore.fetchProfile()
   assessmentStore.fetchReports()
+  membershipStore.fetchLimits()
   try {
     const res = await request.get('/recommendations')
     if (res.code === 0) recommendations.value = res.data.slice(0, 4)
@@ -539,6 +586,50 @@ function formatDate(iso) {
   background: rgba(255, 255, 255, 0.6);
   padding: 2px 8px;
   border-radius: 4px;
+}
+
+/* 会员卡片 */
+.membership-card {
+  border: 1px solid #f59e0b;
+}
+.membership-card :deep(.el-card__header) {
+  background: linear-gradient(135deg, rgba(245,158,11,0.06), rgba(217,119,6,0.06));
+}
+.membership-info {
+  text-align: center;
+}
+.membership-level {
+  margin-bottom: 16px;
+}
+.membership-features {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.mf-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background: var(--bg-primary, #f5f7fa);
+  border-radius: 6px;
+  font-size: 13px;
+}
+.mf-label {
+  color: var(--text-secondary, #606266);
+}
+.mf-usage {
+  font-weight: 600;
+  color: #22c55e;
+}
+.mf-usage.mf-limit {
+  color: #f56c6c;
+}
+.upgrade-btn {
+  width: 100%;
 }
 
 @media (max-width: 768px) {

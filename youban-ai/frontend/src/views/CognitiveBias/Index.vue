@@ -13,10 +13,28 @@
         </div>
       </div>
       <div class="action-area">
-        <el-button type="primary" size="large" round @click="startScan" :loading="loading">
+        <div class="usage-info" v-if="membershipStore.level !== 'admin'">
+          <el-tag :type="usageInfo.remaining > 0 ? 'info' : 'danger'" size="large" effect="plain">
+            本月已用 {{ usageInfo.usage }} / {{ usageInfo.limit === Infinity ? '∞' : usageInfo.limit }} 次
+            <span v-if="usageInfo.remaining === 0">（已达上限）</span>
+          </el-tag>
+        </div>
+        <el-button
+          v-if="usageInfo.remaining > 0 || membershipStore.level === 'admin'"
+          type="primary" size="large" round @click="startScan" :loading="loading"
+        >
           开始扫描 <el-icon><ArrowRight /></el-icon>
         </el-button>
+        <el-button v-else type="warning" size="large" round @click="$router.push('/upgrade')">
+          立即升级 <el-icon><ArrowRight /></el-icon>
+        </el-button>
       </div>
+      <UpgradePrompt
+        v-if="showUpgrade"
+        title="认知偏差扫描次数已用完"
+        :sub-title="`当前等级：${membershipStore.levelLabel}，本月已使用 ${usageInfo.usage}/${usageInfo.limit} 次`"
+        :usage-info="usageInfo"
+      />
       <div class="history-section" v-if="store.history.length > 0">
         <h3>历史扫描记录</h3>
         <div class="history-item" v-for="h in store.history.slice(0, 5)" :key="h.id" @click="$router.push(`/cognitive-bias/result/${h.id}`)">
@@ -31,13 +49,20 @@
 
 <script setup>
 import AppLayout from '@/components/layout/AppLayout.vue'
+import UpgradePrompt from '@/components/common/UpgradePrompt.vue'
 import { useCognitiveBiasStore } from '@/stores/cognitiveBias'
+import { useMembershipStore } from '@/stores/membership'
 import { useRouter } from 'vue-router'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const store = useCognitiveBiasStore()
+const membershipStore = useMembershipStore()
 const loading = ref(false)
+const showUpgrade = ref(false)
+
+const usageInfo = computed(() => membershipStore.getFeatureLimit('cognitive-bias'))
 
 const biasTypes = [
   { type: 'anchoring', name: '锚定效应', icon: '⚓', desc: '决策时过度依赖最先获得的信息' },
@@ -51,13 +76,24 @@ const biasTypes = [
 
 onMounted(() => {
   store.loadHistory()
+  membershipStore.fetchLimits()
 })
 
 async function startScan() {
   loading.value = true
-  await store.startTest()
-  loading.value = false
-  router.push('/cognitive-bias/test')
+  try {
+    await store.startTest()
+    router.push('/cognitive-bias/test')
+  } catch (err) {
+    if (err.response?.status === 403) {
+      showUpgrade.value = true
+      membershipStore.fetchLimits()
+    } else {
+      ElMessage.error('启动扫描失败，请稍后重试')
+    }
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

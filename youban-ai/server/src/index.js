@@ -36,6 +36,7 @@ import { analyzeLeveragePoints, getLeverageAnalysisHistory } from './routes/leve
 import { getCompoundGrowthData, getMicroHabits, toggleMicroHabit, getStreakStats } from './routes/compoundGrowth.js'
 import { getKnowledgeNetwork, updateKnowledgeNode } from './routes/knowledgeNetwork.js'
 import { createDecision, analyzeDecision, completeDecision, getDecisionHistory } from './routes/decisionSupport.js'
+import { requireLevel, getMemberLimits } from './middleware/level.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -118,35 +119,35 @@ app.get('/api/dp/mental', authMiddleware, getMentalAssessments)
 app.post('/api/dp/mental', authMiddleware, createMentalAssessment)
 
 // 认知偏差扫描仪
-app.post('/api/cognitive-bias/start', authMiddleware, startBiasTest)
+app.post('/api/cognitive-bias/start', authMiddleware, requireLevel('cognitive-bias'), startBiasTest)
 app.post('/api/cognitive-bias/submit', authMiddleware, submitBiasAnswer)
 app.get('/api/cognitive-bias/result/:sessionId', authMiddleware, getBiasResult)
 app.get('/api/cognitive-bias/history', authMiddleware, getBiasHistory)
 
 // 双系统思维训练
-app.post('/api/dual-system/start', authMiddleware, startDualSystemTest)
+app.post('/api/dual-system/start', authMiddleware, requireLevel('dual-system'), startDualSystemTest)
 app.post('/api/dual-system/submit', authMiddleware, submitDualSystemAnswer)
 app.get('/api/dual-system/result/:sessionId', authMiddleware, getDualSystemResult)
 app.get('/api/dual-system/history', authMiddleware, getDualSystemHistory)
 
 // 过度自信校准
-app.post('/api/calibration/start', authMiddleware, startCalibrationTest)
+app.post('/api/calibration/start', authMiddleware, requireLevel('calibration'), startCalibrationTest)
 app.post('/api/calibration/submit', authMiddleware, submitCalibrationAnswer)
 app.get('/api/calibration/result/:sessionId', authMiddleware, getCalibrationResult)
 app.get('/api/calibration/history', authMiddleware, getCalibrationHistory)
 
 // 认知层次诊断
-app.post('/api/cognitive-level/start', authMiddleware, startCognitiveLevelTest)
+app.post('/api/cognitive-level/start', authMiddleware, requireLevel('cognitive-level'), startCognitiveLevelTest)
 app.post('/api/cognitive-level/submit', authMiddleware, submitCognitiveLevelAnswers)
 app.get('/api/cognitive-level/result/:sessionId', authMiddleware, getCognitiveLevelResult)
 app.get('/api/cognitive-level/history', authMiddleware, getCognitiveLevelHistory)
 
 // 价值定位分析
-app.post('/api/value-analysis', authMiddleware, analyzeValuePositioning)
+app.post('/api/value-analysis', authMiddleware, requireLevel('value-analysis'), analyzeValuePositioning)
 app.get('/api/value-analysis/history', authMiddleware, getValueAnalysisHistory)
 
 // 杠杆点分析
-app.post('/api/leverage-analysis', authMiddleware, analyzeLeveragePoints)
+app.post('/api/leverage-analysis', authMiddleware, requireLevel('leverage-analysis'), analyzeLeveragePoints)
 app.get('/api/leverage-analysis/history', authMiddleware, getLeverageAnalysisHistory)
 
 // 复利成长追踪
@@ -160,10 +161,16 @@ app.get('/api/knowledge-network', authMiddleware, getKnowledgeNetwork)
 app.post('/api/knowledge-network/update', authMiddleware, updateKnowledgeNode)
 
 // 决策辅助
-app.post('/api/decision', authMiddleware, createDecision)
+app.post('/api/decision', authMiddleware, requireLevel('decision'), createDecision)
 app.post('/api/decision/analyze', authMiddleware, analyzeDecision)
 app.post('/api/decision/complete', authMiddleware, completeDecision)
 app.get('/api/decision/history', authMiddleware, getDecisionHistory)
+
+// 会员限制查询
+app.get('/api/member/limits', authMiddleware, (req, res) => {
+  const limits = getMemberLimits(req.member.id)
+  res.json({ code: 0, data: limits })
+})
 
 app.listen(PORT, () => {
   console.log(`优伴AI 会员服务已启动: http://localhost:${PORT}`)

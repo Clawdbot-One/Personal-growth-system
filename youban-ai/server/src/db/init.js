@@ -486,6 +486,20 @@ db.exec(`
     );
   `)
 
+  // === 月度用量追踪 ===
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS monthly_usage (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL,
+      feature TEXT NOT NULL,
+      year_month TEXT NOT NULL,
+      usage_count INTEGER DEFAULT 0,
+      updated_at TEXT DEFAULT (datetime('now', 'localtime')),
+      UNIQUE(member_id, feature, year_month),
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+    );
+  `)
+
 // Create indexes
 db.exec(`
   CREATE INDEX IF NOT EXISTS idx_members_username ON members(username);
@@ -518,6 +532,7 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_habit_member ON micro_habit_logs(member_id);
   CREATE INDEX IF NOT EXISTS idx_knowledge_member ON knowledge_nodes(member_id);
   CREATE INDEX IF NOT EXISTS idx_decision_member ON decision_records(member_id);
+  CREATE INDEX IF NOT EXISTS idx_monthly_usage_member ON monthly_usage(member_id);
 `)
 
 export default db

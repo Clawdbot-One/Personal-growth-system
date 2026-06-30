@@ -23,8 +23,15 @@
         </div>
       </div>
       <div class="action-area">
-        <el-button type="primary" size="large" round @click="startCalibration" :loading="loading">开始校准 <el-icon><ArrowRight /></el-icon></el-button>
+        <div class="usage-info" v-if="membershipStore.level !== 'admin'">
+          <el-tag :type="usageInfo.remaining > 0 ? 'info' : 'danger'" size="large" effect="plain">
+            本月已用 {{ usageInfo.usage }} / {{ usageInfo.limit === Infinity ? '∞' : usageInfo.limit }} 次
+          </el-tag>
+        </div>
+        <el-button v-if="usageInfo.remaining > 0 || membershipStore.level === 'admin'" type="primary" size="large" round @click="startCalibration" :loading="loading">开始校准 <el-icon><ArrowRight /></el-icon></el-button>
+        <el-button v-else type="warning" size="large" round @click="$router.push('/upgrade')">立即升级 <el-icon><ArrowRight /></el-icon></el-button>
       </div>
+      <UpgradePrompt v-if="showUpgrade" title="校准次数已用完" :sub-title="`当前等级：${membershipStore.levelLabel}，本月已使用 ${usageInfo.usage}/${usageInfo.limit} 次`" :usage-info="usageInfo" />
       <div class="history-section" v-if="store.history.length > 0">
         <h3>校准记录</h3>
         <div class="history-item" v-for="h in store.history.slice(0, 5)" :key="h.id" @click="$router.push(`/calibration/result/${h.id}`)">
@@ -42,21 +49,31 @@
 
 <script setup>
 import AppLayout from '@/components/layout/AppLayout.vue'
+import UpgradePrompt from '@/components/common/UpgradePrompt.vue'
 import { useCalibrationStore } from '@/stores/calibration'
+import { useMembershipStore } from '@/stores/membership'
 import { useRouter } from 'vue-router'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const store = useCalibrationStore()
+const membershipStore = useMembershipStore()
 const loading = ref(false)
+const showUpgrade = ref(false)
+const usageInfo = computed(() => membershipStore.getFeatureLimit('calibration'))
 
-onMounted(() => { store.loadHistory() })
+onMounted(() => { store.loadHistory(); membershipStore.fetchLimits() })
 
 async function startCalibration() {
   loading.value = true
-  await store.startTest()
-  loading.value = false
-  router.push('/calibration/test')
+  try {
+    await store.startTest()
+    router.push('/calibration/test')
+  } catch (err) {
+    if (err.response?.status === 403) { showUpgrade.value = true; membershipStore.fetchLimits() }
+    else { ElMessage.error('启动校准失败，请稍后重试') }
+  } finally { loading.value = false }
 }
 </script>
 

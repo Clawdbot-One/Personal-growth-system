@@ -244,6 +244,13 @@ const routes = [
     component: () => import('@/views/DecisionSupport/Index.vue'),
     meta: { title: '决策辅助系统' },
   },
+  // 会员升级
+  {
+    path: '/upgrade',
+    name: 'Upgrade',
+    component: () => import('@/views/Upgrade.vue'),
+    meta: { title: '升级会员' },
+  },
   // 管理后台
   {
     path: '/admin',
